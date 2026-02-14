@@ -214,7 +214,7 @@ body {
    内容居中重构
    =========================== */
 
-.content {
+.home-content {
     flex: 1;
     display: grid;
     place-items: center;
@@ -338,7 +338,7 @@ h1 span {
 
 /* 左侧留白 300px */
 .article-left {
-    width: 300px;
+    width: 380px;
     flex-shrink: 0;
 }
 

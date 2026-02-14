@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="https://luogu.qzz.io/style.css">
     <!-- GitHub Markdown 深色主题 + 代码高亮深色 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-dark.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+    <!-- 导入highlight-->
+     <script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script src="https://gengen.qzz.io/js/lgge-chat.js"></script>
     <!-- KaTeX 样式 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <!-- 云剪切版页专用布局补丁 (保证顶栏宽度、目录固定、扩展样式) -->
-    <style>
-    </style>
 </head>
 <body>
     <!-- 侧边栏 (与主页一致，云剪切版项 active) -->
@@ -31,7 +31,7 @@
                     </span>
                     <span class="text">首页</span>
                 </a>
-                <a href="/article" class="nav-item active">
+                <a href="/paste" class="nav-item active">
                     <span class="icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg>
                     </span>
@@ -157,7 +157,7 @@
             // ---------- 获取云剪切版 ID ----------
             let articleId = null;
             const path = window.location.pathname;
-            const pathMatch = path.match(/\/article\/([a-z0-9]+)/);
+            const pathMatch = path.match(/\/paste\/([a-z0-9]+)/);
             if (pathMatch) articleId = pathMatch[1];
             if (!articleId && window.location.hash) articleId = window.location.hash.replace(/^#/, '').trim();
             if (!articleId) {
@@ -166,7 +166,7 @@
             }
 
             if (!articleId || articleId.length < 3) {
-                document.getElementById('dynamic-article-title').innerText = '无效的云剪切版ID';
+                document.getElementById('dynamic-article-').innerText = '无效的云剪切版ID';
                 document.getElementById('markdown-content').innerHTML = '<div class="error-message">云剪切版ID缺失或错误</div>';
                 document.getElementById('breadcrumb-current').innerText = '错误';
                 return;
@@ -199,7 +199,7 @@
 
             // ---------- 加载云剪切版数据 ----------
             async function loadArticle(forceUpdate = false) {
-                let apiUrl = `https://luogu.qzz.io/api/a/${articleId}`;
+                let apiUrl = `https://luogu.qzz.io/api/p/${articleId}`;
                 if (forceUpdate) {
                     apiUrl += '?update=1';
                 }
@@ -208,11 +208,11 @@
                     const resp = await fetch(apiUrl, { mode: 'cors' });
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
-
-                    if (!data.success || data.type !== 'article') {
+                    if (!data.success || data.type !== 'paste') {
                         throw new Error(data.message || '无效的云剪切版数据');
                     }
 
+                    data.title=data.author.name+"的云剪切版";
                     // 更新标题 & 面包屑
                     titleEl.innerText = data.title;
                     document.title = `${data.title} - GenGen 洛谷国际`;

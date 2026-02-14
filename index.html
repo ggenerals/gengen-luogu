@@ -49,7 +49,7 @@
     </header>
 
     <!-- 中心内容 -->
-    <div class="content">
+    <div class="home-content">
         <div class="box">
 
             <!-- 标题区域 -->
@@ -60,7 +60,7 @@
 
             <!-- 搜索栏 -->
             <div class="search-bar">
-                <input type="text" placeholder="输入洛谷地址查看">
+                <input type="text" placeholder="输入洛谷地址（如 luogu.com.cn/problem/P1000）">
                 <button>→</button>
             </div>
 
@@ -69,5 +69,56 @@
 
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.querySelector('.search-bar input');
+  const searchButton = document.querySelector('.search-bar button');
+  
+  // 处理跳转逻辑
+  const handleRedirect = () => {
+    let urlStr = searchInput.value.trim();
+    if (!urlStr) {
+      alert('请输入洛谷地址');
+      return;
+    }
+    
+    // 1. 优先替换 .com.cn（避免 .com 先替换导致残留）
+    let newUrl = urlStr
+      .replace(/luogu\.com\.cn/ig, 'luogu.qzz.io')
+      .replace(/luogu\.com/ig, 'luogu.qzz.io');
+    
+    // 2. 确保使用 HTTPS 协议
+    if (!/^https?:\/\//i.test(newUrl)) {
+      newUrl = 'https://' + newUrl;
+    } else {
+      newUrl = newUrl.replace(/^http:/i, 'https:');
+    }
+    
+    // 3. 验证是否包含目标域名（基础校验）
+    try {
+      const urlObj = new URL(newUrl);
+      if (!urlObj.hostname.includes('luogu.qzz.io')) {
+        if (confirm(`检测到非洛谷地址，是否仍跳转到：\n${newUrl}`)) {
+          window.location.href = newUrl;
+        }
+        return;
+      }
+    } catch (e) {
+      alert('地址格式无效，请检查输入');
+      return;
+    }
+    
+    // 4. 安全跳转
+    window.location.href = newUrl;
+  };
+  
+  // 绑定事件
+  searchButton.addEventListener('click', handleRedirect);
+  searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleRedirect();
+  });
+  
+});
+</script>
 </body>
 </html>
