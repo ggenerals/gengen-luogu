@@ -340,8 +340,7 @@ h1 span {
 }
 
 .article-left {
-    /* 默认状态：大屏显示 380px */
-    width: 380px !important;
+    width: 222px !important;
     flex-shrink: 0 !important;
     opacity: 1;
     padding: 0 1rem 0 0;
