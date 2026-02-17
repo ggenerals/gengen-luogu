@@ -256,62 +256,40 @@
                     return hljs.highlight(code, { language: validLang }).value;
                 },
                 // 添加对数学公式的特殊处理，避免被解析为HTML
-                extensions: [{
-                    name: 'math',
-                    level: 'inline',
-                    start: (src) => {
-                        // 同时检查 $$ 和 $
-                        const dollarDouble = src.match(/\$\$[\s\S]*?\$\$/)?.index;
-                        const dollarSingle = src.match(/(?<!\$)\$(?!\$)[^\$\n]+\$(?!\$)/)?.index;
-                        if (dollarDouble !== undefined && dollarSingle !== undefined) {
-                            return Math.min(dollarDouble, dollarSingle);
-                        }
-                        return dollarDouble !== undefined ? dollarDouble : dollarSingle;
-                    },
-                    tokenizer: (src) => {
-                        // 优先匹配 $$ (块级)
-                        let match = src.match(/^\$\$[\s\S]*?\$\$/);
-                        if (match) {
-                            return {
-                                type: 'math',
-                                raw: match[0],
-                                text: match[0]
-                            };
-                        }
-                        // 其次匹配 $ (行内)
-                        match = src.match(/^\$(?!\$)[^\$\n]+\$(?!\$)/);
-                        if (match) {
-                            return {
-                                type: 'math',
-                                raw: match[0],
-                                text: match[0]
-                            };
-                        }
-                    },
-                    renderer: (token) => {
-                        if (typeof katex !== 'undefined') {
-                            try {
-                                let content = token.text;
-                                let displayMode = false;
-                                // 判断是否为块级公式
-                                if (content.startsWith('$$') && content.endsWith('$$')) {
-                                    content = content.slice(2, -2);
-                                    displayMode = true;
-                                } else if (content.startsWith('$') && content.endsWith('$')) {
-                                    content = content.slice(1, -1);
-                                    displayMode = false;
-                                }
-                                return katex.renderToString(content, {
-                                    displayMode: displayMode,
-                                    throwOnError: false
-                                });
-                            } catch (e) {
-                                return token.text;
+                extensions: [
+                    {
+                        name: 'mathBlock',
+                        level: 'block',
+                        start: (src) => src.match(/\$\$/)?.index,
+                        tokenizer: (src) => {
+                            const match = src.match(/^\s*\$\$([\s\S]*?)\$\$/);
+                            if (match) {
+                                return {
+                                    type: 'mathBlock',
+                                    raw: match[0],
+                                    text: match[0]  // 保留完整定界符
+                                };
                             }
-                        }
-                        return token.text;
+                        },
+                        renderer: (token) => token.text
+                    },
+                    {
+                        name: 'mathInline',
+                        level: 'inline',
+                        start: (src) => src.match(/(?<!\$)\$(?!\$)/)?.index,
+                        tokenizer: (src) => {
+                            const match = src.match(/^\s*\$(?!\$)([^\$\n]+?)\$(?!\$)/);
+                            if (match) {
+                                return {
+                                    type: 'mathInline',
+                                    raw: match[0],
+                                    text: match[0]
+                                };
+                            }
+                        },
+                        renderer: (token) => token.text
                     }
-                }]
+                ]
             });
 
             // ---------- DOM 元素 ----------
@@ -397,6 +375,15 @@
                         ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
                     });
                     markdownBody.innerHTML = cleanHtml;
+
+                    // 渲染数学公式
+                    renderMathInElement(markdownBody, {
+                        delimiters: [
+                            { left: "$$", right: "$$", display: true },
+                            { left: "$", right: "$", display: false }
+                        ],
+                        throwOnError: false
+                    });
 
                     // 代码高亮
                     markdownBody.querySelectorAll('pre code').forEach(block => {
