@@ -263,16 +263,26 @@
                         level: 'block',
                         start: (src) => src.match(/\$\$/)?.index,
                         tokenizer: (src) => {
-                            const match = src.match(/^\s*\$\$([\s\S]*?)\$\$/);
+                            // 匹配完整的 $$...$$ 块，并捕获内部内容（不含定界符）
+                            const match = src.match(/^\s*\$\$([\s\S]*?)\$\$\s*/);
                             if (match) {
                                 return {
                                     type: 'mathBlock',
                                     raw: match[0],
-                                    text: match[0]  // 保留完整定界符
+                                    mathContent: match[1].trim() // 公式内容（已去除定界符）
                                 };
                             }
                         },
-                        renderer: (token) => token.text
+                        renderer: (token) => {
+                            // 将公式内容进行 HTML 转义，安全地放入 data-math 属性
+                            const escapedMath = token.mathContent
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;')
+                                .replace(/'/g, '&#39;');
+                            return `<div class="math-block" data-math="${escapedMath}"></div>`;
+                        }
                     },
                     {
                         name: 'mathInline',
@@ -376,7 +386,17 @@
                         ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
                     });
                     markdownBody.innerHTML = cleanHtml;
-
+                    // 手动渲染块级公式
+                    document.querySelectorAll('.math-block').forEach(el => {
+                        const math = el.dataset.math;
+                        if (math) {
+                            try {
+                                katex.render(math, el, { displayMode: true, throwOnError: false });
+                            } catch (e) {
+                                el.innerHTML = `<span class="katex-error">${e.message}</span>`;
+                            }
+                        }
+                    });
                     // 渲染数学公式
                     renderMathInElement(markdownBody, {
                         delimiters: [
