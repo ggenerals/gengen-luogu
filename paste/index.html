@@ -55,7 +55,7 @@
 
     <!-- 主区域 (顶栏 + 动态内容) -->
     <div class="main">
-        <!-- 顶栏 (面包屑) 宽度已修复为100% -->
+        <!-- 顶栏 (面包屑) -->
         <header class="topbar">
             <nav class="breadcrumb">
                 <ol>
@@ -72,10 +72,8 @@
 
         <!-- 内容区域: 左侧留白 + 云剪切板主体 + 右侧固定面板 -->
         <div class="content">
-            <!-- 左侧预留空白 300px -->
             <div class="article-left"></div>
 
-            <!-- 云剪切板主体 (中间区域) -->
             <div class="article-middle">
                 <div class="article-header">
                     <h1 class="article-title" id="dynamic-article-title">加载云剪切板...</h1>
@@ -85,7 +83,6 @@
                     </div>
                 </div>
 
-                <!-- Markdown 渲染区 -->
                 <div class="markdown-body" id="markdown-content">
                     <div class="loading">
                         <div class="spinner"></div>
@@ -94,21 +91,17 @@
                 </div>
             </div>
 
-            <!-- 右侧面板：目录 + 保存时间 + 三个按钮 -->
             <div class="article-right">
-                <!-- 保存时间 (分为两行) -->
                 <div class="save-time" id="save-time">
                     <span class="label">当前云剪切板保存于</span>
                     <span class="value">--</span>
                 </div>
 
-                <!-- 目录 -->
                 <div class="toc-container">
                     <div class="toc-title">目录</div>
                     <ul class="toc-list" id="toc-list"></ul>
                 </div>
 
-                <!-- 三个操作按钮 (纯文本) -->
                 <div class="action-buttons">
                     <button class="action-btn" id="update-btn">更新内容</button>
                     <button class="action-btn" id="original-btn" disabled>访问原文</button>
@@ -129,28 +122,29 @@
                 };
             }
 
-            // ---------- 增强扩展语法处理 (支持嵌套容器、可变冒号数量、open属性、epigraph) ----------
+            // ---------- 增强扩展语法处理 (与文章页相同) ----------
             function preprocessMarkdownExtensions(raw) {
                 if (!raw) return raw;
+
+                // 处理块级公式 $$...$$ (前后加换行)
                 raw = raw.replace(/^\s*\$\$([\s\S]*?)\$\$\s*/gm, (match, p1) => {
-                    // 对公式内容进行转义，安全放入 data-math 属性
                     const escaped = p1.trim()
                         .replace(/&/g, '&amp;')
                         .replace(/</g, '&lt;')
                         .replace(/>/g, '&gt;')
                         .replace(/"/g, '&quot;')
                         .replace(/'/g, '&#39;');
-                    return `<div class="math-block" data-math="${escaped}"></div>`;
+                    return '\n<div class="math-block" data-math="' + escaped + '"></div>\n';
                 });
-                // 基于行的容器指令解析器 (支持 ::: 及以上嵌套)
+
+                // 基于行的容器指令解析器 (与文章页完全相同)
                 function convertContainerDirectives(text) {
                     const lines = text.split('\n');
-                    const stack = []; // 每个元素: {level, type, title, attrs, content: []}
+                    const stack = [];
                     const rootPieces = [];
 
                     for (let i = 0; i < lines.length; i++) {
                         let line = lines[i];
-                        // 匹配开始行：至少三个冒号 + 类型名 + 可选[标题] + 可选{属性}
                         let startMatch = line.match(/^(:::+)(\w+)(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$/);
                         if (startMatch && startMatch[1].length >= 3) {
                             const level = startMatch[1].length;
@@ -162,33 +156,29 @@
                             continue;
                         }
 
-                        // 匹配结束行：与栈顶相同数量的冒号 (可能后面有空格)
                         if (stack.length > 0) {
                             const top = stack[stack.length - 1];
                             const endPattern = new RegExp(`^:{${top.level}}\\s*$`);
                             if (endPattern.test(line)) {
-                                // 弹出栈顶，生成 HTML
                                 const node = stack.pop();
-                                // 拼接内部内容 (保留换行)
                                 let innerContent = node.content.join('');
                                 
-                                // 根据 type 构建 HTML
                                 let html = '';
                                 const attrs = node.attrs;
                                 const openClass = attrs.includes('open') ? ' open' : '';
                                 
                                 if (node.type === 'align') {
-                                    const align = attrs.trim() || 'left'; // 属性值直接作为对齐方向
+                                    const align = attrs.trim() || 'left';
                                     html = `<div class="markdown-align-${align}${openClass}">${innerContent}</div>`;
                                 } else if (node.type === 'epigraph') {
                                     html = `<div class="markdown-epigraph${openClass}">${innerContent}</div>`;
                                 } else {
-                                    // callouts: info, warning, success, error, note, tip, caution 等
                                     const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
                                     html = `<div class="markdown-alert markdown-alert-${node.type}${openClass}">${titleHtml}${innerContent}</div>`;
                                 }
 
-                                // 将生成的 HTML 添加到父节点或根
+                                html = '\n' + html + '\n';
+
                                 if (stack.length > 0) {
                                     stack[stack.length - 1].content.push(html);
                                 } else {
@@ -198,7 +188,6 @@
                             }
                         }
 
-                        // 普通行：保留原样，加上换行符保证 Markdown 解析正确
                         if (stack.length > 0) {
                             stack[stack.length - 1].content.push(line + '\n');
                         } else {
@@ -206,7 +195,6 @@
                         }
                     }
 
-                    // 处理未闭合的容器（将它们全部闭合并附加到根）
                     while (stack.length > 0) {
                         const node = stack.pop();
                         let innerContent = node.content.join('');
@@ -224,6 +212,8 @@
                             html = `<div class="markdown-alert markdown-alert-${node.type}${openClass}">${titleHtml}${innerContent}</div>`;
                         }
                         
+                        html = '\n' + html + '\n';
+
                         if (stack.length > 0) {
                             stack[stack.length - 1].content.push(html);
                         } else {
@@ -234,7 +224,6 @@
                     return rootPieces.join('');
                 }
 
-                // 应用容器指令转换
                 return convertContainerDirectives(raw);
             }
 
@@ -255,7 +244,7 @@
 
             document.getElementById('breadcrumb-current').innerText = `ID: ${pasteId}`;
 
-            // ---------- 设置 marked ----------
+            // ---------- 设置 marked (与文章页相同) ----------
             marked.setOptions({
                 gfm: true,
                 breaks: true,
@@ -264,51 +253,7 @@
                     const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
                     return hljs.highlight(code, { language: validLang }).value;
                 },
-                // 添加对数学公式的特殊处理，避免被解析为HTML
-                extensions: [
-                    {
-                        name: 'mathBlock',
-                        level: 'block',
-                        start: (src) => src.match(/\$\$/)?.index,
-                        tokenizer: (src) => {
-                            // 匹配完整的 $$...$$ 块，并捕获内部内容（不含定界符）
-                            const match = src.match(/^\s*\$\$([\s\S]*?)\$\$\s*/);
-                            if (match) {
-                                return {
-                                    type: 'mathBlock',
-                                    raw: match[0],
-                                    mathContent: match[1].trim() // 公式内容（已去除定界符）
-                                };
-                            }
-                        },
-                        renderer: (token) => {
-                            // 将公式内容进行 HTML 转义，安全地放入 data-math 属性
-                            const escapedMath = token.mathContent
-                                .replace(/&/g, '&amp;')
-                                .replace(/</g, '&lt;')
-                                .replace(/>/g, '&gt;')
-                                .replace(/"/g, '&quot;')
-                                .replace(/'/g, '&#39;');
-                            return `<div class="math-block" data-math="${escapedMath}"></div>`;
-                        }
-                    },
-                    {
-                        name: 'mathInline',
-                        level: 'inline',
-                        start: (src) => src.match(/(?<!\$)\$(?!\$)/)?.index,
-                        tokenizer: (src) => {
-                            const match = src.match(/^\s*\$(?!\$)([^\$\n]+?)\$(?!\$)/);
-                            if (match) {
-                                return {
-                                    type: 'mathInline',
-                                    raw: match[0],
-                                    text: match[0]
-                                };
-                            }
-                        },
-                        renderer: (token) => token.text
-                    }
-                ]
+                extensions: []
             });
 
             // ---------- DOM 元素 ----------
@@ -334,6 +279,7 @@
                     const resp = await fetch(apiUrl, { mode: 'cors' });
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
+
                     if (!data.success || data.type !== 'paste') {
                         throw new Error(data.message || '无效的云剪切板数据');
                     }
@@ -359,7 +305,6 @@
                     }).replace(/\//g, '-').replace(',', '');
                     saveTimeEl.querySelector('.value').innerText = formatted;
 
-                    // 启用按钮
                     originalBtn.disabled = false;
                     copyBtn.disabled = false;
 
@@ -382,18 +327,18 @@
                         }
                     };
 
-                    // ---------- 预处理扩展语法 (增强版) ----------
+                    // 预处理扩展语法
                     let processedContent = preprocessMarkdownExtensions(data.content);
 
                     // 渲染 Markdown
                     const rawHtml = marked.parse(processedContent);
-                    // 确保图片正常显示：DOMPurify 默认允许 img，但显式配置更安全
                     const cleanHtml = DOMPurify.sanitize(rawHtml, { 
                         ADD_TAGS: ['span', 'div', 'math'], 
-                        ADD_ATTR: ['class', 'src', 'alt'],
+                        ADD_ATTR: ['class', 'src', 'alt', 'data-math'],
                         ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
                     });
                     markdownBody.innerHTML = cleanHtml;
+
                     // 手动渲染块级公式
                     document.querySelectorAll('.math-block').forEach(el => {
                         const math = el.dataset.math;
@@ -406,7 +351,7 @@
                         }
                     });
 
-                    // 渲染数学公式
+                    // 渲染行内公式
                     renderMathInElement(markdownBody, {
                         delimiters: [
                             { left: "$$", right: "$$", display: true },
@@ -420,7 +365,7 @@
                         hljs.highlightElement(block);
                     });
 
-                    // ---------- 生成目录 ----------
+                    // 生成目录
                     const headers = markdownBody.querySelectorAll('h1, h2, h3');
                     if (headers.length > 0) {
                         tocList.innerHTML = '';
@@ -450,10 +395,8 @@
                 }
             }
 
-            // 首次加载
             await loadPaste(false);
 
-            // 更新按钮：强制重新加载
             updateBtn.onclick = () => {
                 markdownBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>更新中...</p></div>';
                 loadPaste(true);
