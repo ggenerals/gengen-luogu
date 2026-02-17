@@ -542,6 +542,24 @@ h1 span {
     background: var(--surface-light);
     backdrop-filter: var(--blur);
 }
+.markdown-alert .markdown-alert {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+.markdown-alert.open {
+    border: 1px solid var(--accent, #3b82f6);
+}
+.markdown-epigraph {
+    margin: 1.5em 2em;
+    padding: 0.5em 1.5em;
+    border-left: 4px solid #8b949e;
+    background-color: rgba(139, 148, 158, 0.1);
+    border-radius: 6px;
+    font-style: italic;
+}
+.markdown-epigraph p {
+    margin: 0.5em 0;
+}
 .markdown-alert-error   { border-left-color: #f85149 !important; }
 .markdown-alert-warning { border-left-color: #f0883e !important; }
 .markdown-alert-note    { border-left-color: #2f81f7 !important; }
@@ -557,9 +575,16 @@ h1 span {
     font-size: 1.05rem;
 }
 
-/* 对齐辅助 */
-.markdown-align-center { text-align: center; }
-.markdown-align-right  { text-align: right; }
+.markdown-align-left {
+    text-align: left;
+}
+.markdown-align-center {
+    text-align: center;
+}
+.markdown-align-right {
+    text-align: right;
+}
+
 
 /* 面包屑颜色 (覆盖全白) */
 .breadcrumb a {

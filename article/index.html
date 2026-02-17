@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <!-- Clarity tracking code for https://luogu.qzz.io/ -->
+    <script>
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "vi2g0q5518");
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文章 · GenGen 洛谷国际</title>
@@ -12,7 +20,7 @@
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
     <!-- 导入highlight-->
     <script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
-    <script src="https://gengen.qzz.io/js/lgge-chat.js"></script>
+    <script src="https://gengen.qzz.io/js/lgge-chat.js" defer></script>
     <!-- KaTeX 样式 -->
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.css">
     <script src="https://cdn.bootcdn.net/ajax/libs/marked/16.3.0/lib/marked.umd.min.js"></script>
@@ -122,34 +130,104 @@
                 };
             }
 
-            // ---------- 增强扩展语法处理 (支持标题和属性) ----------
+            // ---------- 增强扩展语法处理 (支持嵌套容器、可变冒号数量、open属性、epigraph) ----------
             function preprocessMarkdownExtensions(raw) {
                 if (!raw) return raw;
-                // 匹配 :::type[可选标题]{可选属性} 内容 :::  (允许跨行)
-                const alertRegex = /:::(\w+)(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*\n([\s\S]*?)\n:::/g;
-                raw = raw.replace(alertRegex, (match, type, title, attrs, content) => {
-                    const safeType = type.toLowerCase();
-                    const titleHtml = title ? `<div class="markdown-alert-title">${title.trim()}</div>` : '';
-                    return `<div class="markdown-alert markdown-alert-${safeType}">${titleHtml}<div class="markdown-alert-content">${content.trim()}</div></div>`;
-                });
 
-                // 同时兼容简单语法 :::type 内容 :::
-                const simpleTypes = ['error','warning','note','success','info','tip','caution','important'];
-                simpleTypes.forEach(t => {
-                    const simpleRegex = new RegExp(`:::${t}\\s*\\n([\\s\\S]*?)\\n:::`, 'g');
-                    raw = raw.replace(simpleRegex, (match, content) => {
-                        return `<div class="markdown-alert markdown-alert-${t}"><div class="markdown-alert-content">${content.trim()}</div></div>`;
-                    });
-                });
+                // 基于行的容器指令解析器 (支持 ::: 及以上嵌套)
+                function convertContainerDirectives(text) {
+                    const lines = text.split('\n');
+                    const stack = []; // 每个元素: {level, type, title, attrs, content: []}
+                    const rootPieces = [];
 
-                // 对齐语法
-                raw = raw.replace(/:::align\{center\}\s*\n([\s\S]*?)\n:::/g, (match, content) => {
-                    return `<div class="markdown-align-center">${content.trim()}</div>`;
-                });
-                raw = raw.replace(/:::align\{right\}\s*\n([\s\S]*?)\n:::/g, (match, content) => {
-                    return `<div class="markdown-align-right">${content.trim()}</div>`;
-                });
-                return raw;
+                    for (let i = 0; i < lines.length; i++) {
+                        let line = lines[i];
+                        // 匹配开始行：至少三个冒号 + 类型名 + 可选[标题] + 可选{属性}
+                        let startMatch = line.match(/^(:::+)(\w+)(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$/);
+                        if (startMatch && startMatch[1].length >= 3) {
+                            const level = startMatch[1].length;
+                            const type = startMatch[2];
+                            const title = startMatch[3] || '';
+                            const attrs = startMatch[4] || '';
+                            const node = { level, type, title, attrs, content: [] };
+                            stack.push(node);
+                            continue;
+                        }
+
+                        // 匹配结束行：与栈顶相同数量的冒号 (可能后面有空格)
+                        if (stack.length > 0) {
+                            const top = stack[stack.length - 1];
+                            const endPattern = new RegExp(`^:{${top.level}}\\s*$`);
+                            if (endPattern.test(line)) {
+                                // 弹出栈顶，生成 HTML
+                                const node = stack.pop();
+                                // 拼接内部内容 (保留换行)
+                                let innerContent = node.content.join('');
+                                
+                                // 根据 type 构建 HTML
+                                let html = '';
+                                const attrs = node.attrs;
+                                const openClass = attrs.includes('open') ? ' open' : '';
+                                
+                                if (node.type === 'align') {
+                                    const align = attrs.trim() || 'left'; // 属性值直接作为对齐方向
+                                    html = `<div class="markdown-align-${align}${openClass}">${innerContent}</div>`;
+                                } else if (node.type === 'epigraph') {
+                                    html = `<div class="markdown-epigraph${openClass}">${innerContent}</div>`;
+                                } else {
+                                    // callouts: info, warning, success, error, note, tip, caution 等
+                                    const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
+                                    html = `<div class="markdown-alert markdown-alert-${node.type}${openClass}">${titleHtml}${innerContent}</div>`;
+                                }
+
+                                // 将生成的 HTML 添加到父节点或根
+                                if (stack.length > 0) {
+                                    stack[stack.length - 1].content.push(html);
+                                } else {
+                                    rootPieces.push(html);
+                                }
+                                continue;
+                            }
+                        }
+
+                        // 普通行：保留原样，加上换行符保证 Markdown 解析正确
+                        if (stack.length > 0) {
+                            stack[stack.length - 1].content.push(line + '\n');
+                        } else {
+                            rootPieces.push(line + '\n');
+                        }
+                    }
+
+                    // 处理未闭合的容器（将它们全部闭合并附加到根）
+                    while (stack.length > 0) {
+                        const node = stack.pop();
+                        let innerContent = node.content.join('');
+                        let html = '';
+                        const attrs = node.attrs;
+                        const openClass = attrs.includes('open') ? ' open' : '';
+                        
+                        if (node.type === 'align') {
+                            const align = attrs.trim() || 'left';
+                            html = `<div class="markdown-align-${align}${openClass}">${innerContent}</div>`;
+                        } else if (node.type === 'epigraph') {
+                            html = `<div class="markdown-epigraph${openClass}">${innerContent}</div>`;
+                        } else {
+                            const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
+                            html = `<div class="markdown-alert markdown-alert-${node.type}${openClass}">${titleHtml}${innerContent}</div>`;
+                        }
+                        
+                        if (stack.length > 0) {
+                            stack[stack.length - 1].content.push(html);
+                        } else {
+                            rootPieces.push(html);
+                        }
+                    }
+
+                    return rootPieces.join('');
+                }
+
+                // 应用容器指令转换 (同时移除了旧的正则替换，因为新解析器覆盖所有情况)
+                return convertContainerDirectives(raw);
             }
 
             // ---------- 获取文章 ID ----------
@@ -164,7 +242,7 @@
             }
 
             if (!articleId || articleId.length < 3) {
-                articleId='vwe2axcb';
+                articleId='vwe2axcb'; // 默认演示ID
             }
 
             document.getElementById('breadcrumb-current').innerText = `ID: ${articleId}`;
@@ -251,7 +329,7 @@
                         }
                     };
 
-                    // ---------- 预处理扩展语法 ----------
+                    // ---------- 预处理扩展语法 (增强版) ----------
                     let processedContent = preprocessMarkdownExtensions(data.content);
 
                     // 渲染 Markdown
@@ -259,8 +337,8 @@
                     // 确保图片正常显示：DOMPurify 默认允许 img，但显式配置更安全
                     const cleanHtml = DOMPurify.sanitize(rawHtml, { 
                         ADD_TAGS: ['span', 'div', 'math'], 
-                        ADD_ATTR: ['class', 'src', 'alt'],   // 明确保留 src 和 alt
-                        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // 允许 http/https
+                        ADD_ATTR: ['class', 'src', 'alt'],
+                        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
                     });
                     markdownBody.innerHTML = cleanHtml;
 
