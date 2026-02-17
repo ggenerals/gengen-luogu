@@ -254,7 +254,24 @@
                 highlight: (code, lang) => {
                     const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
                     return hljs.highlight(code, { language: validLang }).value;
-                }
+                },
+                // 添加对数学公式的特殊处理，避免被解析为HTML
+                extensions: [{
+                    name: 'math',
+                    level: 'inline',
+                    start: (src) => src.match(/\$\$[\s\S]*?\$\$/)?.index,
+                    tokenizer: (src) => {
+                        const match = src.match(/^\$\$[\s\S]*?\$\$/);
+                        if (match) {
+                            return {
+                                type: 'math',
+                                raw: match[0],
+                                text: match[0]
+                            };
+                        }
+                    },
+                    renderer: (token) => token.text
+                }]
             });
 
             // ---------- DOM 元素 ----------
