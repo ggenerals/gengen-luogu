@@ -289,7 +289,29 @@
                             };
                         }
                     },
-                    renderer: (token) => token.text
+                    renderer: (token) => {
+                        if (typeof katex !== 'undefined') {
+                            try {
+                                let content = token.text;
+                                let displayMode = false;
+                                // 判断是否为块级公式
+                                if (content.startsWith('$$') && content.endsWith('$$')) {
+                                    content = content.slice(2, -2);
+                                    displayMode = true;
+                                } else if (content.startsWith('$') && content.endsWith('$')) {
+                                    content = content.slice(1, -1);
+                                    displayMode = false;
+                                }
+                                return katex.renderToString(content, {
+                                    displayMode: displayMode,
+                                    throwOnError: false
+                                });
+                            } catch (e) {
+                                return token.text;
+                            }
+                        }
+                        return token.text;
+                    }
                 }]
             });
 
@@ -376,15 +398,6 @@
                         ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
                     });
                     markdownBody.innerHTML = cleanHtml;
-
-                    // 渲染数学公式
-                    renderMathInElement(markdownBody, {
-                        delimiters: [
-                            { left: "$$", right: "$$", display: true },
-                            { left: "$", right: "$", display: false }
-                        ],
-                        throwOnError: false
-                    });
 
                     // 代码高亮
                     markdownBody.querySelectorAll('pre code').forEach(block => {
