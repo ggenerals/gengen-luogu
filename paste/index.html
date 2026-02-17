@@ -259,9 +259,27 @@
                 extensions: [{
                     name: 'math',
                     level: 'inline',
-                    start: (src) => src.match(/\$\$[\s\S]*?\$\$/)?.index,
+                    start: (src) => {
+                        // 同时检查 $$ 和 $
+                        const dollarDouble = src.match(/\$\$[\s\S]*?\$\$/)?.index;
+                        const dollarSingle = src.match(/(?<!\$)\$(?!\$)[^\$\n]+\$(?!\$)/)?.index;
+                        if (dollarDouble !== undefined && dollarSingle !== undefined) {
+                            return Math.min(dollarDouble, dollarSingle);
+                        }
+                        return dollarDouble !== undefined ? dollarDouble : dollarSingle;
+                    },
                     tokenizer: (src) => {
-                        const match = src.match(/^\$\$[\s\S]*?\$\$/);
+                        // 优先匹配 $$ (块级)
+                        let match = src.match(/^\$\$[\s\S]*?\$\$/);
+                        if (match) {
+                            return {
+                                type: 'math',
+                                raw: match[0],
+                                text: match[0]
+                            };
+                        }
+                        // 其次匹配 $ (行内)
+                        match = src.match(/^\$(?!\$)[^\$\n]+\$(?!\$)/);
                         if (match) {
                             return {
                                 type: 'math',
