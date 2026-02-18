@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <!-- Clarity tracking code for https://luogu.qzz.io/ -->
+    <!-- Clarity 追踪 (保留) -->
     <script>
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -11,25 +11,140 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>云剪切板 · GenGen 洛谷国际</title>
-    <!-- 共用 favicon & 主样式表 (深色玻璃变量 + 侧边栏 + 基础框架) -->
+    <title>阅览 · GenGen 洛谷国际</title>
+    <!-- 共用 favicon & 主样式框架 (深色玻璃变量 + 侧边栏布局) -->
     <link rel="icon" href="https://luogu.qzz.io/lgge.svg">
     <link rel="stylesheet" href="https://luogu.qzz.io/style.css">
     <!-- GitHub Markdown 深色主题 + 代码高亮深色 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-dark.min.css">
     <link rel="stylesheet" href="https://cdn.timecdn.cn/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
-    <!-- 导入highlight-->
+    <!-- highlight.js -->
     <script src="https://cdn.timecdn.cn/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <!-- 聊天组件 (保留) -->
     <script src="https://gengen.qzz.io/js/lgge-chat.js" defer></script>
-    <!-- KaTeX 样式 -->
+    <!-- KaTeX 核心 -->
     <link rel="stylesheet" href="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/katex.min.css">
     <script src="https://cdn.timecdn.cn/ajax/libs/marked/16.3.0/lib/marked.umd.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/dompurify/3.2.7/purify.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+
+    <!-- ========= 重构CSS：合并文章/剪切板样式，补充容器样式 ========= -->
+    <style>
+        /* 保证 markdown 内容里的自定义容器 (alert, epigraph, align) 视觉统一 */
+        .markdown-alert {
+            margin: 1rem 0;
+            padding: 0.75rem 1rem;
+            border-left: 0.25rem solid;
+            border-radius: 0.375rem;
+            background-color: rgba(127, 127, 127, 0.1);
+        }
+        .markdown-alert-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .markdown-alert.markdown-alert-info { border-left-color: #58a6ff; background-color: rgba(88, 166, 255, 0.1); }
+        .markdown-alert.markdown-alert-warning { border-left-color: #f0883e; background-color: rgba(240, 136, 62, 0.1); }
+        .markdown-alert.markdown-alert-success { border-left-color: #3fb950; background-color: rgba(63, 185, 80, 0.1); }
+        .markdown-alert.markdown-alert-error { border-left-color: #f85149; background-color: rgba(248, 81, 73, 0.1); }
+
+        /* 题词 (epigraph) 右对齐，典雅风格 */
+        .markdown-epigraph {
+            margin: 2rem 2rem 1rem auto;
+            padding-left: 2rem;
+            max-width: 70%;
+            font-style: italic;
+            border-left: 2px solid var(--border-color, #444);
+            color: var(--text-muted, #aaa);
+            text-align: right;
+        }
+        .markdown-epigraph p {
+            margin: 0.25rem 0;
+        }
+        /* 对齐容器 */
+        .markdown-align-left { text-align: left; }
+        .markdown-align-center { text-align: center; }
+        .markdown-align-right { text-align: right; }
+
+        /* 折叠/打开属性 (若容器标记有 open 类，可做特殊提示) */
+        .markdown-alert.open, .markdown-epigraph.open {
+            opacity: 1;
+        }
+
+        /* 块级公式占位符 (math-block 由 KaTeX 填充) */
+        .math-block {
+            margin: 1rem 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+        .katex-error { color: #f85149; }
+
+        /* 右侧面板按钮状态 */
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* 加载动画 */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: var(--text-muted, #888);
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: #58a6ff;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 目录样式微调 */
+        .toc-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc-list li {
+            margin: 0.25rem 0;
+        }
+        .toc-list a {
+            color: var(--text-muted, #aaa);
+            text-decoration: none;
+            display: block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .toc-list a:hover {
+            background-color: rgba(127,127,127,0.2);
+            color: #58a6ff;
+        }
+        .toc-h2 { padding-left: 1rem; font-size: 0.95em; }
+        .toc-h3 { padding-left: 2rem; font-size: 0.9em; }
+
+        /* 面包屑动态高亮 */
+        .breadcrumb-current {
+            font-weight: 500;
+            color: #58a6ff;
+        }
+
+        /* 保证侧边栏 active 类 (由JS控制) */
+        .sidebar-nav .nav-item.active {
+            background: rgba(88, 166, 255, 0.2);
+            color: #58a6ff;
+            border-left: 3px solid #58a6ff;
+        }
+    </style>
 </head>
 <body>
-    <!-- 侧边栏 (与主页一致，云剪切板项 active) -->
+    <!-- 侧边栏 (静态，active 将由JS根据当前路径修改) -->
     <div class="sidebar-wrapper">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -37,31 +152,31 @@
                 <span class="sidebar-title">GenGen 洛谷国际</span>
             </div>
             <nav class="sidebar-nav">
-                <a href="/" class="nav-item">
-                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house size-5 shrink-0" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>
+                <a href="/" class="nav-item" id="nav-home">
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>
                     <span class="text">首页</span>
                 </a>
-                <a href="/article" class="nav-item">
-                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-newspaper-icon lucide-newspaper"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg></span>
+                <a href="/article" class="nav-item" id="nav-article">
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg></span>
                     <span class="text">文章</span>
                 </a>
-                <a href="/paste" class="nav-item active">
-                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-pen-line-icon lucide-clipboard-pen-line"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-.5"/><path d="M16 4h2a2 2 0 0 1 1.73 1"/><path d="M8 18h1"/><path d="M21.378 12.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg></span>
+                <a href="/paste" class="nav-item" id="nav-paste">
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-.5"/><path d="M16 4h2a2 2 0 0 1 1.73 1"/><path d="M8 18h1"/><path d="M21.378 12.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg></span>
                     <span class="text">云剪切板</span>
                 </a>
             </nav>
         </aside>
     </div>
 
-    <!-- 主区域 (顶栏 + 动态内容) -->
+    <!-- 主区域 -->
     <div class="main">
-        <!-- 顶栏 (面包屑) -->
+        <!-- 顶栏 (面包屑，动态填充) -->
         <header class="topbar">
             <nav class="breadcrumb">
                 <ol>
                     <li><a href="/">首页</a></li>
                     <li class="separator">/</li>
-                    <li><a href="/paste">云剪切板</a></li>
+                    <li><a href="/article" id="breadcrumb-type-link">文章</a></li>
                     <li class="separator">/</li>
                     <li class="breadcrumb-item">
                         <span class="breadcrumb-current" id="breadcrumb-current">加载中...</span>
@@ -70,13 +185,13 @@
             </nav>
         </header>
 
-        <!-- 内容区域: 左侧留白 + 云剪切板主体 + 右侧固定面板 -->
+        <!-- 三栏内容布局 -->
         <div class="content">
-            <div class="article-left"></div>
+            <div class="article-left"></div> <!-- 留白 -->
 
             <div class="article-middle">
                 <div class="article-header">
-                    <h1 class="article-title" id="dynamic-article-title">加载云剪切板...</h1>
+                    <h1 class="article-title" id="dynamic-article-title">加载中...</h1>
                     <div class="article-author">
                         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 38 38'%3E%3Ccircle cx='19' cy='19' r='17' fill='%23333f5a'/%3E%3C/svg%3E" class="author-avatar" id="author-avatar" alt="作者头像">
                         <a href="#" class="author-name" id="author-link" target="_blank">加载中</a>
@@ -86,14 +201,14 @@
                 <div class="markdown-body" id="markdown-content">
                     <div class="loading">
                         <div class="spinner"></div>
-                        <p>正在加载云剪切板内容...</p>
+                        <p>正在加载内容...</p>
                     </div>
                 </div>
             </div>
 
             <div class="article-right">
                 <div class="save-time" id="save-time">
-                    <span class="label">当前云剪切板保存于</span>
+                    <span class="label" id="save-time-label">当前保存于</span>
                     <span class="value">--</span>
                 </div>
 
@@ -112,21 +227,17 @@
     </div>
 
     <script>
-        (async function() {
+        (function() {
             // ---------- 确保 hljs 存在 ----------
             if (typeof hljs === 'undefined') {
-                console.warn('hljs 未加载，代码高亮已禁用');
-                window.hljs = {
-                    highlight: (code) => ({ value: code }),
-                    highlightElement: (el) => {}
-                };
+                console.warn('hljs 未加载，使用空高亮');
+                window.hljs = { highlight: (code) => ({ value: code }), highlightElement: (el) => {} };
             }
 
-            // ---------- 增强扩展语法处理 (与文章页相同) ----------
+            // ---------- 增强扩展语法处理 (与原来完全一致，支持嵌套容器) ----------
             function preprocessMarkdownExtensions(raw) {
                 if (!raw) return raw;
-
-                // 处理块级公式 $$...$$ (前后加换行)
+                // 块级公式 $$...$$ 转为 math-block
                 raw = raw.replace(/^\s*\$\$([\s\S]*?)\$\$\s*/gm, (match, p1) => {
                     const escaped = p1.trim()
                         .replace(/&/g, '&amp;')
@@ -137,7 +248,6 @@
                     return '\n<div class="math-block" data-math="' + escaped + '"></div>\n';
                 });
 
-                // 基于行的容器指令解析器 (与文章页完全相同)
                 function convertContainerDirectives(text) {
                     const lines = text.split('\n');
                     const stack = [];
@@ -176,9 +286,7 @@
                                     const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
                                     html = `<div class="markdown-alert markdown-alert-${node.type}${openClass}">${titleHtml}${innerContent}</div>`;
                                 }
-
                                 html = '\n' + html + '\n';
-
                                 if (stack.length > 0) {
                                     stack[stack.length - 1].content.push(html);
                                 } else {
@@ -201,7 +309,6 @@
                         let html = '';
                         const attrs = node.attrs;
                         const openClass = attrs.includes('open') ? ' open' : '';
-                        
                         if (node.type === 'align') {
                             const align = attrs.trim() || 'left';
                             html = `<div class="markdown-align-${align}${openClass}">${innerContent}</div>`;
@@ -211,40 +318,19 @@
                             const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
                             html = `<div class="markdown-alert markdown-alert-${node.type}${openClass}">${titleHtml}${innerContent}</div>`;
                         }
-                        
                         html = '\n' + html + '\n';
-
                         if (stack.length > 0) {
                             stack[stack.length - 1].content.push(html);
                         } else {
                             rootPieces.push(html);
                         }
                     }
-
                     return rootPieces.join('');
                 }
-
                 return convertContainerDirectives(raw);
             }
 
-            // ---------- 获取云剪切板 ID ----------
-            let pasteId = null;
-            const path = window.location.pathname;
-            const pathMatch = path.match(/\/paste\/([a-z0-9]+)/);
-            if (pathMatch) pasteId = pathMatch[1];
-            if (!pasteId && window.location.hash) pasteId = window.location.hash.replace(/^#/, '').trim();
-            if (!pasteId) {
-                const params = new URLSearchParams(window.location.search);
-                pasteId = params.get('id');
-            }
-
-            if (!pasteId || pasteId.length < 3) {
-                pasteId = 'yx7hyde9'; // 默认演示ID
-            }
-
-            document.getElementById('breadcrumb-current').innerText = `ID: ${pasteId}`;
-
-            // ---------- 设置 marked (与文章页相同) ----------
+            // ---------- 设置 marked (禁用自带扩展，完全靠预处理) ----------
             marked.setOptions({
                 gfm: true,
                 breaks: true,
@@ -256,11 +342,72 @@
                 extensions: []
             });
 
-            // ---------- DOM 元素 ----------
+            // ---------- 路由 / 类型判断 ----------
+            const path = window.location.pathname;
+            let type = 'article';       // 默认article，但会根据路径覆盖
+            let rawId = null;
+
+            // 优先从路径提取
+            const articleMatch = path.match(/^\/article\/([a-z0-9]+)/);
+            const pasteMatch = path.match(/^\/paste\/([a-z0-9]+)/);
+            if (articleMatch) {
+                type = 'article';
+                rawId = articleMatch[1];
+            } else if (pasteMatch) {
+                type = 'paste';
+                rawId = pasteMatch[1];
+            } else {
+                // 降级：从hash或search获取
+                const hash = window.location.hash.replace(/^#/, '');
+                if (hash) rawId = hash;
+                else {
+                    const params = new URLSearchParams(window.location.search);
+                    rawId = params.get('id');
+                }
+                // 如果仍然没有，根据路径是否包含'article'或'paste'作为提示
+                if (path.includes('/article')) type = 'article';
+                else if (path.includes('/paste')) type = 'paste';
+                // 最后兜底用默认ID
+            }
+
+            // 默认ID (文章: vwe2axcb, 剪切板: yx7hyde9)
+            const DEFAULT_ARTICLE_ID = 'vwe2axcb';
+            const DEFAULT_PASTE_ID = 'yx7hyde9';
+            if (!rawId) {
+                rawId = (type === 'article') ? DEFAULT_ARTICLE_ID : DEFAULT_PASTE_ID;
+            }
+            const contentId = rawId;
+
+            // 更新面包屑和侧边栏active
+            function updateUIByType() {
+                // 面包屑类型链接
+                const typeLink = document.getElementById('breadcrumb-type-link');
+                if (type === 'article') {
+                    typeLink.href = '/article';
+                    typeLink.innerText = '文章';
+                    document.getElementById('save-time-label').innerText = '当前文档保存于';
+                } else {
+                    typeLink.href = '/paste';
+                    typeLink.innerText = '云剪切板';
+                    document.getElementById('save-time-label').innerText = '当前云剪切板保存于';
+                }
+                // 侧边栏active
+                document.getElementById('nav-home').classList.remove('active');
+                document.getElementById('nav-article').classList.remove('active');
+                document.getElementById('nav-paste').classList.remove('active');
+                if (type === 'article') {
+                    document.getElementById('nav-article').classList.add('active');
+                } else {
+                    document.getElementById('nav-paste').classList.add('active');
+                }
+            }
+            updateUIByType();
+
+            // DOM 元素
             const titleEl = document.getElementById('dynamic-article-title');
             const authorAvatar = document.getElementById('author-avatar');
             const authorLink = document.getElementById('author-link');
-            const saveTimeEl = document.getElementById('save-time');
+            const saveTimeValue = document.querySelector('#save-time .value');
             const originalBtn = document.getElementById('original-btn');
             const copyBtn = document.getElementById('copy-btn');
             const updateBtn = document.getElementById('update-btn');
@@ -268,34 +415,42 @@
             const tocList = document.getElementById('toc-list');
             const breadcrumbSpan = document.getElementById('breadcrumb-current');
 
-            // ---------- 加载云剪切板数据 ----------
-            async function loadPaste(forceUpdate = false) {
-                let apiUrl = `https://luogu.qzz.io/api/p/${pasteId}`;
-                if (forceUpdate) {
-                    apiUrl += '?update=1';
-                }
+            // API 基础路径
+            const apiBase = type === 'article' ? 'https://luogu.qzz.io/api/a/' : 'https://luogu.qzz.io/api/p/';
+
+            // 加载数据
+            async function loadContent(forceUpdate = false) {
+                let url = `${apiBase}${contentId}`;
+                if (forceUpdate) url += '?update=1';
 
                 try {
-                    const resp = await fetch(apiUrl, { mode: 'cors' });
+                    const resp = await fetch(url, { mode: 'cors' });
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
 
-                    if (!data.success || data.type !== 'paste') {
-                        throw new Error(data.message || '无效的云剪切板数据');
+                    if (!data.success || (type === 'article' && data.type !== 'article') || (type === 'paste' && data.type !== 'paste')) {
+                        throw new Error(data.message || '数据格式错误');
                     }
 
-                    // 设置标题：作者名 + "的云剪切板"
-                    const displayTitle = data.author.name + "的云剪切板";
+                    // 设置标题 (文章用data.title，剪切板用作者名)
+                    let displayTitle = '';
+                    if (type === 'article') {
+                        displayTitle = data.title || '无题';
+                    } else {
+                        displayTitle = (data.author?.name || '用户') + ' 的云剪切板';
+                    }
                     titleEl.innerText = displayTitle;
                     document.title = `${displayTitle} - GenGen 洛谷国际`;
                     breadcrumbSpan.innerText = displayTitle;
 
-                    // 作者信息
-                    authorAvatar.src = `https://cdn.luogu.com.cn/upload/usericon/${data.author.uid}.png`;
-                    authorLink.href = `https://luogu.store/u/${data.author.uid}`;
-                    authorLink.innerText = data.author.name;
+                    // 作者信息 (通用)
+                    const uid = data.author?.uid || '0';
+                    const name = data.author?.name || '未知';
+                    authorAvatar.src = `https://cdn.luogu.com.cn/upload/usericon/${uid}.png`;
+                    authorLink.href = `https://luogu.store/u/${uid}`;
+                    authorLink.innerText = name;
 
-                    // 保存时间
+                    // 更新时间
                     const ts = data.updated_at > 1e12 ? data.updated_at : data.updated_at * 1000;
                     const d = new Date(ts);
                     const formatted = d.toLocaleString('zh-CN', { 
@@ -303,15 +458,19 @@
                         hour: '2-digit', minute: '2-digit', second: '2-digit',
                         hour12: false 
                     }).replace(/\//g, '-').replace(',', '');
-                    saveTimeEl.querySelector('.value').innerText = formatted;
+                    saveTimeValue.innerText = formatted;
 
-                    originalBtn.disabled = false;
+                    // 原文链接
+                    if (data.original_url && data.original_url.trim()) {
+                        originalBtn.disabled = false;
+                        originalBtn.onclick = () => window.open(data.original_url.trim(), '_blank');
+                    } else {
+                        originalBtn.disabled = true;
+                        originalBtn.onclick = null;
+                    }
+
+                    // 复制MD
                     copyBtn.disabled = false;
-
-                    originalBtn.onclick = () => {
-                        if (data.original_url) window.open(data.original_url.trim(), '_blank');
-                    };
-
                     copyBtn.onclick = async () => {
                         try {
                             await navigator.clipboard.writeText(data.content);
@@ -327,19 +486,19 @@
                         }
                     };
 
-                    // 预处理扩展语法
-                    let processedContent = preprocessMarkdownExtensions(data.content);
+                    // 预处理Markdown扩展语法
+                    let processed = preprocessMarkdownExtensions(data.content);
 
-                    // 渲染 Markdown
-                    const rawHtml = marked.parse(processedContent);
-                    const cleanHtml = DOMPurify.sanitize(rawHtml, { 
-                        ADD_TAGS: ['span', 'div', 'math'], 
+                    // marked 渲染
+                    const rawHtml = marked.parse(processed);
+                    const cleanHtml = DOMPurify.sanitize(rawHtml, {
+                        ADD_TAGS: ['span', 'div', 'math'],
                         ADD_ATTR: ['class', 'src', 'alt', 'data-math'],
                         ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
                     });
                     markdownBody.innerHTML = cleanHtml;
 
-                    // 手动渲染块级公式
+                    // 块级公式
                     document.querySelectorAll('.math-block').forEach(el => {
                         const math = el.dataset.math;
                         if (math) {
@@ -351,7 +510,7 @@
                         }
                     });
 
-                    // 渲染行内公式
+                    // 行内公式
                     renderMathInElement(markdownBody, {
                         delimiters: [
                             { left: "$$", right: "$$", display: true },
@@ -367,14 +526,12 @@
 
                     // 生成目录
                     const headers = markdownBody.querySelectorAll('h1, h2, h3');
+                    tocList.innerHTML = '';
                     if (headers.length > 0) {
-                        tocList.innerHTML = '';
                         headers.forEach((h, index) => {
                             const level = parseInt(h.tagName[1]);
                             let text = h.innerText;
-                            if (!h.id) {
-                                h.id = `toc-header-${index}`;
-                            }
+                            if (!h.id) h.id = `toc-header-${index}`;
                             const li = document.createElement('li');
                             const a = document.createElement('a');
                             a.href = `#${h.id}`;
@@ -390,16 +547,18 @@
                 } catch (err) {
                     console.error('加载失败:', err);
                     titleEl.innerText = '加载失败';
-                    markdownBody.innerHTML = `<div class="error-message">错误：${err.message}</div>`;
+                    markdownBody.innerHTML = `<div class="error-message" style="color:#f85149; padding:2rem;">错误：${err.message}</div>`;
                     breadcrumbSpan.innerText = '错误';
                 }
             }
 
-            await loadPaste(false);
+            // 初始加载
+            loadContent(false);
 
+            // 更新按钮
             updateBtn.onclick = () => {
                 markdownBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>更新中...</p></div>';
-                loadPaste(true);
+                loadContent(true);
             };
         })();
     </script>
