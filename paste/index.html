@@ -261,7 +261,7 @@
                     const resp = await fetch(apiUrl, { mode: 'cors' });
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
-                    data.data.title=data.author.name + "的云剪切板"
+                    data.title=data.author.name + "的云剪切板"
                     if (!data.success || data.type !== 'paste') throw new Error(data.message || '无效的文章数据');
                       const markdownText = data.content;
                     // 更新头部
