@@ -645,3 +645,9 @@ h1 span {
     transform: scale(1.15);
     box-shadow: 0 0 15px rgba(98,95,255,0.6);
 }
+
+.logo {
+    width: 64px;
+    height: 64px;
+    transition: transform var(--transition);
+}
