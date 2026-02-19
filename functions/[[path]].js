@@ -10,10 +10,10 @@ export async function onRequest(context) {
 
   // 2. 动态路由配置（统一处理逻辑）
   const routes = [
-    { pattern: /^\/article\/([^/]+)\/?$/, target: '/article/index.html', header: 'X-Article-ID' },
-    { pattern: /^\/a\/([^/]+)\/?$/, target: '/article/index.html', header: 'X-Article-ID' },
-    { pattern: /^\/paste\/([^/]+)\/?$/, target: '/paste/index.html', header: 'X-Paste-ID' },
-    { pattern: /^\/p\/([^/]+)\/?$/, target: '/paste/index.html', header: 'X-Paste-ID' }
+    { pattern: /^\/article\/([^/]+)\/?$/, target: '/reader/index.html', header: 'X-Article-ID' },
+    { pattern: /^\/a\/([^/]+)\/?$/, target: '/reader/index.html', header: 'X-Article-ID' },
+    { pattern: /^\/paste\/([^/]+)\/?$/, target: '/reader/index.html', header: 'X-Paste-ID' },
+    { pattern: /^\/p\/([^/]+)\/?$/, target: '/reader/index.html', header: 'X-Paste-ID' }
   ];
 
   for (const { pattern, target, header } of routes) {
