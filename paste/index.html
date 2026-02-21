@@ -27,6 +27,61 @@
     <script src="https://cdn.timecdn.cn/ajax/libs/dompurify/3.2.7/purify.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+    <style>
+        .foldable {
+            margin: 1em 0;
+            padding: 0.5em 1em;
+            border: 1px solid #444c56;
+            border-radius: 6px;
+            background-color: #2d333b;
+            transition: border-color 0.2s;
+        }
+        .foldable:hover {
+            border-color: #768390;
+        }
+        .foldable summary {
+            font-weight: 600;
+            cursor: pointer;
+            color: #adbac7;
+            margin: -0.5em -1em -0.5em -1em;
+            padding: 0.5em 1em;
+            background-color: #373e47;
+            border-radius: 6px 6px 0 0;
+            border-bottom: 1px solid #444c56;
+        }
+        .foldable[open] summary {
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid #444c56;
+        }
+        .foldable.info {
+            border-left: 4px solid #539bf5;
+        }
+        .foldable.warning {
+            border-left: 4px solid #e3b341;
+        }
+        .foldable.success {
+            border-left: 4px solid #57ab5a;
+        }
+        .foldable.error {
+            border-left: 4px solid #e5534b;
+        }
+        .foldable.bug {
+            border-left: 4px solid #d986ba;
+        }
+        .foldable.flask {
+            border-left: 4px solid #9e6bff;
+        }
+        .align-left { text-align: left; }
+        .align-center { text-align: center; }
+        .align-right { text-align: right; }
+        .epigraph {
+            font-style: italic;
+            margin: 1.5em 2em;
+            padding-left: 1em;
+            border-left: 3px solid #768390;
+            color: #768390;
+        }
+    </style>
 </head>
 <body>
     <!-- 侧边栏 (与主页一致，云剪切板项 active) -->
@@ -93,7 +148,7 @@
 
             <div class="article-right">
                 <div class="save-time" id="save-time">
-                    <span class="label">当前云剪切板保存于</span>
+                    <span class="label">当前文档保存于</span>
                     <span class="value">--</span>
                 </div>
 
@@ -122,11 +177,11 @@
                 };
             }
 
-            // ---------- 增强扩展语法处理 (与文章页相同) ----------
+            // ---------- 增强扩展语法处理 (支持对齐、题词、折叠块，使用第一个页面的类名) ----------
             function preprocessMarkdownExtensions(raw) {
                 if (!raw) return raw;
 
-                // 处理块级公式 $$...$$ (前后加换行)
+                // 处理块级公式 $$...$$ (前后加换行，避免破坏表格等块级元素)
                 raw = raw.replace(/^\s*\$\$([\s\S]*?)\$\$\s*/gm, (match, p1) => {
                     const escaped = p1.trim()
                         .replace(/&/g, '&amp;')
@@ -137,7 +192,7 @@
                     return '\n<div class="math-block" data-math="' + escaped + '"></div>\n';
                 });
 
-                // 基于行的容器指令解析器 (与文章页完全相同)
+                // 基于行的容器指令解析器 (支持 ::: 及以上嵌套)
                 function convertContainerDirectives(text) {
                     const lines = text.split('\n');
                     const stack = [];
@@ -165,18 +220,25 @@
                                 
                                 let html = '';
                                 const attrs = node.attrs;
-                                const openClass = attrs.includes('open') ? ' open' : '';
+                                const openAttr = attrs.includes('open') ? ' open' : '';
                                 
+                                // 根据类型生成不同 HTML（采用第一个页面的类名）
                                 if (node.type === 'align') {
                                     const align = attrs.trim() || 'left';
-                                    html = `<div class="markdown-align-${align}${openClass}">${innerContent}</div>`;
+                                    html = `<div class="align-${align}">${innerContent}</div>`;
                                 } else if (node.type === 'epigraph') {
-                                    html = `<div class="markdown-epigraph${openClass}">${innerContent}</div>`;
+                                    html = `<div class="epigraph">${innerContent}</div>`;
+                                } else if (['info', 'warning', 'success', 'error', 'bug', 'flask'].includes(node.type)) {
+                                    // 折叠块
+                                    const summary = node.title ? node.title : '点击展开';
+                                    html = `<details class="foldable ${node.type}"${openAttr ? ' open' : ''}><summary>${summary}</summary>${innerContent}</details>`;
                                 } else {
+                                    // 其他类型保留原有 alert 样式
                                     const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
-                                    html = `<div class="markdown-alert markdown-alert-${node.type}${openClass}">${titleHtml}${innerContent}</div>`;
+                                    html = `<div class="markdown-alert markdown-alert-${node.type}${openAttr}">${titleHtml}${innerContent}</div>`;
                                 }
 
+                                // 前后加换行，保证块级分隔
                                 html = '\n' + html + '\n';
 
                                 if (stack.length > 0) {
@@ -200,16 +262,19 @@
                         let innerContent = node.content.join('');
                         let html = '';
                         const attrs = node.attrs;
-                        const openClass = attrs.includes('open') ? ' open' : '';
+                        const openAttr = attrs.includes('open') ? ' open' : '';
                         
                         if (node.type === 'align') {
                             const align = attrs.trim() || 'left';
-                            html = `<div class="markdown-align-${align}${openClass}">${innerContent}</div>`;
+                            html = `<div class="align-${align}">${innerContent}</div>`;
                         } else if (node.type === 'epigraph') {
-                            html = `<div class="markdown-epigraph${openClass}">${innerContent}</div>`;
+                            html = `<div class="epigraph">${innerContent}</div>`;
+                        } else if (['info', 'warning', 'success', 'error', 'bug', 'flask'].includes(node.type)) {
+                            const summary = node.title ? node.title : '点击展开';
+                            html = `<details class="foldable ${node.type}"${openAttr ? ' open' : ''}><summary>${summary}</summary>${innerContent}</details>`;
                         } else {
                             const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
-                            html = `<div class="markdown-alert markdown-alert-${node.type}${openClass}">${titleHtml}${innerContent}</div>`;
+                            html = `<div class="markdown-alert markdown-alert-${node.type}${openAttr}">${titleHtml}${innerContent}</div>`;
                         }
                         
                         html = '\n' + html + '\n';
@@ -228,23 +293,23 @@
             }
 
             // ---------- 获取云剪切板 ID ----------
-            let pasteId = null;
+            let articleId = null;
             const path = window.location.pathname;
             const pathMatch = path.match(/\/paste\/([a-z0-9]+)/);
-            if (pathMatch) pasteId = pathMatch[1];
-            if (!pasteId && window.location.hash) pasteId = window.location.hash.replace(/^#/, '').trim();
-            if (!pasteId) {
+            if (pathMatch) articleId = pathMatch[1];
+            if (!articleId && window.location.hash) articleId = window.location.hash.replace(/^#/, '').trim();
+            if (!articleId) {
                 const params = new URLSearchParams(window.location.search);
-                pasteId = params.get('id');
+                articleId = params.get('id');
             }
 
-            if (!pasteId || pasteId.length < 3) {
-                pasteId = 'yx7hyde9'; // 默认演示ID
+            if (!articleId || articleId.length < 3) {
+                articleId = 'yx7hyde9';
             }
 
-            document.getElementById('breadcrumb-current').innerText = `ID: ${pasteId}`;
+            document.getElementById('breadcrumb-current').innerText = `ID: ${articleId}`;
 
-            // ---------- 设置 marked (与文章页相同) ----------
+            // ---------- 设置 marked (使用 highlight 选项) ----------
             marked.setOptions({
                 gfm: true,
                 breaks: true,
@@ -253,7 +318,7 @@
                     const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
                     return hljs.highlight(code, { language: validLang }).value;
                 },
-                extensions: []
+                extensions: [] // 完全依赖预处理，不使用额外扩展
             });
 
             // ---------- DOM 元素 ----------
@@ -269,8 +334,8 @@
             const breadcrumbSpan = document.getElementById('breadcrumb-current');
 
             // ---------- 加载云剪切板数据 ----------
-            async function loadPaste(forceUpdate = false) {
-                let apiUrl = `https://luogu.qzz.io/api/p/${pasteId}`;
+            async function loadArticle(forceUpdate = false) {
+                let apiUrl = `https://luogu.qzz.io/api/p/${articleId}`;
                 if (forceUpdate) {
                     apiUrl += '?update=1';
                 }
@@ -280,22 +345,18 @@
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
 
-                    if (!data.success || data.type !== 'paste') {
+                    if (!data.success || data.type !== 'article') {
                         throw new Error(data.message || '无效的云剪切板数据');
                     }
+                    data.title = data.author.name + "的云剪切板";
+                    titleEl.innerText = data.title;
+                    document.title = `${data.title} - GenGen 洛谷国际`;
+                    breadcrumbSpan.innerText = data.title;
 
-                    // 设置标题：作者名 + "的云剪切板"
-                    const displayTitle = data.author.name + "的云剪切板";
-                    titleEl.innerText = displayTitle;
-                    document.title = `${displayTitle} - GenGen 洛谷国际`;
-                    breadcrumbSpan.innerText = displayTitle;
-
-                    // 作者信息
                     authorAvatar.src = `https://cdn.luogu.com.cn/upload/usericon/${data.author.uid}.png`;
                     authorLink.href = `https://luogu.store/u/${data.author.uid}`;
                     authorLink.innerText = data.author.name;
 
-                    // 保存时间
                     const ts = data.updated_at > 1e12 ? data.updated_at : data.updated_at * 1000;
                     const d = new Date(ts);
                     const formatted = d.toLocaleString('zh-CN', { 
@@ -333,8 +394,8 @@
                     // 渲染 Markdown
                     const rawHtml = marked.parse(processedContent);
                     const cleanHtml = DOMPurify.sanitize(rawHtml, { 
-                        ADD_TAGS: ['span', 'div', 'math'], 
-                        ADD_ATTR: ['class', 'src', 'alt', 'data-math'],
+                        ADD_TAGS: ['span', 'div', 'math', 'details', 'summary'], 
+                        ADD_ATTR: ['class', 'src', 'alt', 'data-math', 'open'],
                         ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
                     });
                     markdownBody.innerHTML = cleanHtml;
@@ -383,6 +444,17 @@
                             li.appendChild(a);
                             tocList.appendChild(li);
                         });
+
+                        // 为目录链接添加平滑滚动（整合自第一个页面）
+                        document.querySelectorAll('.toc-list a').forEach(a => {
+                            a.addEventListener('click', e => {
+                                e.preventDefault();
+                                const target = document.querySelector(a.getAttribute('href'));
+                                if (target) {
+                                    target.scrollIntoView({ behavior: 'smooth' });
+                                }
+                            });
+                        });
                     } else {
                         tocList.innerHTML = '<li style="color: var(--text-muted);">无标题</li>';
                     }
@@ -395,11 +467,11 @@
                 }
             }
 
-            await loadPaste(false);
+            await loadArticle(false);
 
             updateBtn.onclick = () => {
                 markdownBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>更新中...</p></div>';
-                loadPaste(true);
+                loadArticle(true);
             };
         })();
     </script>
