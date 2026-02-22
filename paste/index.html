@@ -239,7 +239,7 @@
                                 }
 
                                 // 前后加换行，保证块级分隔
-                                html = '\n' + html + '\n';
+                                html = '\n\n' + html + '\n\n';
 
                                 if (stack.length > 0) {
                                     stack[stack.length - 1].content.push(html);
@@ -277,7 +277,7 @@
                             html = `<div class="markdown-alert markdown-alert-${node.type}${openAttr}">${titleHtml}${innerContent}</div>`;
                         }
                         
-                        html = '\n' + html + '\n';
+                        html = '\n\n' + html + '\n\n';
 
                         if (stack.length > 0) {
                             stack[stack.length - 1].content.push(html);
