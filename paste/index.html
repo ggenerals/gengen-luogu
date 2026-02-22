@@ -183,13 +183,7 @@
 
                 // 处理块级公式 $$...$$ (前后加换行，避免破坏表格等块级元素)
                 raw = raw.replace(/^\s*\$\$([\s\S]*?)\$\$\s*/gm, (match, p1) => {
-                    const escaped = p1.trim()
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#39;');
-                    return '\n\n<!-- MATH_BLOCK: ' + escaped + ' -->\n\n';
+                    return '\n\n<!-- MATH_BLOCK: ' + p1.trim() + ' -->\n\n';
                 });
 
                 // 基于行的容器指令解析器 (支持 ::: 及以上嵌套)
@@ -396,7 +390,8 @@
                     const cleanHtml = DOMPurify.sanitize(rawHtml, { 
                         ADD_TAGS: ['span', 'div', 'math', 'details', 'summary'], 
                         ADD_ATTR: ['class', 'src', 'alt', 'data-math', 'open'],
-                        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+                        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+                        SAFE_FOR_TEMPLATES: false
                     });
                     markdownBody.innerHTML = cleanHtml;
                     function replaceMathComments(root) {
@@ -426,17 +421,7 @@
                         });
                     }
 
-                    // 手动渲染块级公式
-                    document.querySelectorAll('.math-block').forEach(el => {
-                        const math = el.dataset.math;
-                        if (math) {
-                            try {
-                                katex.render(math, el, { displayMode: true, throwOnError: false });
-                            } catch (e) {
-                                el.innerHTML = `<span class="katex-error">${e.message}</span>`;
-                            }
-                        }
-                    });
+                    replaceMathComments(markdownBody);
 
                     // 渲染行内公式
                     renderMathInElement(markdownBody, {
