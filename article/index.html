@@ -189,7 +189,7 @@
                         .replace(/>/g, '&gt;')
                         .replace(/"/g, '&quot;')
                         .replace(/'/g, '&#39;');
-                    return '\n<div class="math-block" data-math="' + escaped + '"></div>\n';
+                    return '\n\n<!-- MATH_BLOCK: ' + escaped + ' -->\n\n';
                 });
 
                 // 基于行的容器指令解析器 (支持 ::: 及以上嵌套)
@@ -399,6 +399,33 @@
                         ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
                     });
                     markdownBody.innerHTML = cleanHtml;
+                    function replaceMathComments(root) {
+                        const walker = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT, {
+                            acceptNode: (node) => {
+                                if (node.nodeValue && node.nodeValue.startsWith('MATH_BLOCK:')) {
+                                    return NodeFilter.FILTER_ACCEPT;
+                                }
+                                return NodeFilter.FILTER_SKIP;
+                            }
+                        });
+                        const comments = [];
+                        while (walker.nextNode()) {
+                            comments.push(walker.currentNode);
+                        }
+                        comments.forEach(comment => {
+                            const math = comment.nodeValue.substring('MATH_BLOCK:'.length).trim();
+                            const div = document.createElement('div');
+                            div.className = 'math-block';
+                            div.dataset.math = math;
+                            comment.parentNode.replaceChild(div, comment);
+                            try {
+                                katex.render(math, div, { displayMode: true, throwOnError: false });
+                            } catch (e) {
+                                div.innerHTML = `<span class="katex-error">${e.message}</span>`;
+                            }
+                        });
+                    }
+                    replaceMathComments(markdownBody);
 
                     // 手动渲染块级公式
                     document.querySelectorAll('.math-block').forEach(el => {
