@@ -177,114 +177,108 @@
                 };
             }
 
-            // ---------- 增强扩展语法处理 (支持对齐、题词、折叠块，使用第一个页面的类名) ----------
-            function preprocessMarkdownExtensions(raw) {
-                if (!raw) return raw;
-
-                // 处理块级公式 $$...$$ (前后加换行，避免破坏表格等块级元素)
-                raw = raw.replace(/^\s*\$\$([\s\S]*?)\$\$\s*/gm, (match, p1) => {
-                    return '\n\n<!-- MATH_BLOCK: ' + p1.trim() + ' -->\n\n';
-                });
-
-                // 基于行的容器指令解析器 (支持 ::: 及以上嵌套)
-                function convertContainerDirectives(text) {
-                    const lines = text.split('\n');
-                    const stack = [];
-                    const rootPieces = [];
-
-                    for (let i = 0; i < lines.length; i++) {
-                        let line = lines[i];
-                        let startMatch = line.match(/^(:::+)(\w+)(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$/);
-                        if (startMatch && startMatch[1].length >= 3) {
-                            const level = startMatch[1].length;
-                            const type = startMatch[2];
-                            const title = startMatch[3] || '';
-                            const attrs = startMatch[4] || '';
-                            const node = { level, type, title, attrs, content: [] };
-                            stack.push(node);
-                            continue;
-                        }
-
-                        if (stack.length > 0) {
-                            const top = stack[stack.length - 1];
-                            const endPattern = new RegExp(`^:{${top.level}}\\s*$`);
-                            if (endPattern.test(line)) {
-                                const node = stack.pop();
-                                let innerContent = node.content.join('');
-                                
-                                let html = '';
-                                const attrs = node.attrs;
-                                const openAttr = attrs.includes('open') ? ' open' : '';
-                                
-                                // 根据类型生成不同 HTML（采用第一个页面的类名）
-                                if (node.type === 'align') {
-                                    const align = attrs.trim() || 'left';
-                                    html = `<div class="align-${align}">${innerContent}</div>`;
-                                } else if (node.type === 'epigraph') {
-                                    html = `<div class="epigraph">${innerContent}</div>`;
-                                } else if (['info', 'warning', 'success', 'error', 'bug', 'flask'].includes(node.type)) {
-                                    // 折叠块
-                                    const summary = node.title ? node.title : '点击展开';
-                                    html = `<details class="foldable ${node.type}"${openAttr ? ' open' : ''}><summary>${summary}</summary>${innerContent}</details>`;
-                                } else {
-                                    // 其他类型保留原有 alert 样式
-                                    const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
-                                    html = `<div class="markdown-alert markdown-alert-${node.type}${openAttr}">${titleHtml}${innerContent}</div>`;
-                                }
-
-                                // 前后加换行，保证块级分隔
-                                html = '\n\n' + html + '\n\n';
-
-                                if (stack.length > 0) {
-                                    stack[stack.length - 1].content.push(html);
-                                } else {
-                                    rootPieces.push(html);
-                                }
-                                continue;
-                            }
-                        }
-
-                        if (stack.length > 0) {
-                            stack[stack.length - 1].content.push(line + '\n');
-                        } else {
-                            rootPieces.push(line + '\n');
-                        }
+            // ========== 定义 marked 扩展 ==========
+            // 1. 对齐块扩展 :::align{center} ... :::
+            const alignExtension = {
+                name: 'align',
+                level: 'block',
+                start(src) {
+                    return src.match(/^:::\s*align\s*\{[^}]+\}/)?.index;
+                },
+                tokenizer(src) {
+                    const rule = /^:::\s*align\s*\{([^}]+)\}\n([\s\S]*?)\n:::/;
+                    const match = rule.exec(src);
+                    if (match) {
+                        return {
+                            type: 'align',
+                            raw: match[0],
+                            align: match[1].trim(),
+                            content: match[2].trim()
+                        };
                     }
-
-                    while (stack.length > 0) {
-                        const node = stack.pop();
-                        let innerContent = node.content.join('');
-                        let html = '';
-                        const attrs = node.attrs;
-                        const openAttr = attrs.includes('open') ? ' open' : '';
-                        
-                        if (node.type === 'align') {
-                            const align = attrs.trim() || 'left';
-                            html = `<div class="align-${align}">${innerContent}</div>`;
-                        } else if (node.type === 'epigraph') {
-                            html = `<div class="epigraph">${innerContent}</div>`;
-                        } else if (['info', 'warning', 'success', 'error', 'bug', 'flask'].includes(node.type)) {
-                            const summary = node.title ? node.title : '点击展开';
-                            html = `<details class="foldable ${node.type}"${openAttr ? ' open' : ''}><summary>${summary}</summary>${innerContent}</details>`;
-                        } else {
-                            const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
-                            html = `<div class="markdown-alert markdown-alert-${node.type}${openAttr}">${titleHtml}${innerContent}</div>`;
-                        }
-                        
-                        html = '\n\n' + html + '\n\n';
-
-                        if (stack.length > 0) {
-                            stack[stack.length - 1].content.push(html);
-                        } else {
-                            rootPieces.push(html);
-                        }
-                    }
-
-                    return rootPieces.join('');
+                },
+                renderer(token) {
+                    // 递归解析内部内容，支持嵌套
+                    const innerHtml = marked.parse(token.content);
+                    return `<div class="align-${token.align}">${innerHtml}</div>`;
                 }
+            };
 
-                return convertContainerDirectives(raw);
-            }
+            // 2. 题词块扩展 :::epigraph[作者] ... :::
+            const epigraphExtension = {
+                name: 'epigraph',
+                level: 'block',
+                start(src) {
+                    return src.match(/^:::\s*epigraph(\[[^\]]*\])?/)?.index;
+                },
+                tokenizer(src) {
+                    const rule = /^:::\s*epigraph(?:\[([^\]]*)\])?\n([\s\S]*?)\n:::/;
+                    const match = rule.exec(src);
+                    if (match) {
+                        return {
+                            type: 'epigraph',
+                            raw: match[0],
+                            author: match[1] || '',
+                            content: match[2].trim()
+                        };
+                    }
+                },
+                renderer(token) {
+                    const innerHtml = marked.parse(token.content);
+                    // 如果提供了作者，追加在末尾
+                    const authorHtml = token.author ? `<p>${token.author}</p>` : '';
+                    return `<div class="epigraph">${innerHtml}${authorHtml}</div>`;
+                }
+            };
+
+            // 3. 折叠块扩展 :::info[标题]{open} ... :::
+            const foldableExtension = {
+                name: 'foldable',
+                level: 'block',
+                start(src) {
+                    return src.match(/^:::(info|warning|success|error|bug|flask)/)?.index;
+                },
+                tokenizer(src) {
+                    const rule = /^:::(info|warning|success|error|bug|flask)(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\n([\s\S]*?)\n:::/;
+                    const match = rule.exec(src);
+                    if (match) {
+                        return {
+                            type: 'foldable',
+                            raw: match[0],
+                            foldType: match[1],      // info, warning 等
+                            title: match[2] || '',    // 可选标题
+                            options: match[3] || '',  // 可选参数，如 open
+                            content: match[4].trim()
+                        };
+                    }
+                },
+                renderer(token) {
+                    const innerHtml = marked.parse(token.content);
+                    const hasOpen = token.options.includes('open');
+                    // 构建 summary 内容，若未提供标题则显示默认文本
+                    const summaryText = token.title || '点击展开';
+                    return `
+                        <details class="foldable ${token.foldType}" ${hasOpen ? 'open' : ''}>
+                            <summary>${summaryText}</summary>
+                            ${innerHtml}
+                        </details>
+                    `;
+                }
+            };
+
+            // 注册所有扩展
+            marked.use({ extensions: [alignExtension, epigraphExtension, foldableExtension] });
+
+            // ---------- 设置 marked (使用 highlight 选项) ----------
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                smartypants: true,
+                highlight: (code, lang) => {
+                    const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language: validLang }).value;
+                }
+            });
 
             // ---------- 获取文章 ID ----------
             let articleId = null;
@@ -302,18 +296,6 @@
             }
 
             document.getElementById('breadcrumb-current').innerText = `ID: ${articleId}`;
-
-            // ---------- 设置 marked (使用 highlight 选项) ----------
-            marked.setOptions({
-                gfm: true,
-                breaks: true,
-                smartypants: true,
-                highlight: (code, lang) => {
-                    const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
-                    return hljs.highlight(code, { language: validLang }).value;
-                },
-                extensions: [] // 完全依赖预处理，不使用额外扩展
-            });
 
             // ---------- DOM 元素 ----------
             const titleEl = document.getElementById('dynamic-article-title');
@@ -382,11 +364,8 @@
                         }
                     };
 
-                    // 预处理扩展语法
-                    let processedContent = preprocessMarkdownExtensions(data.content);
-
-                    // 渲染 Markdown
-                    const rawHtml = marked.parse(processedContent);
+                    // 直接使用原始内容，marked 扩展会自动处理自定义语法
+                    const rawHtml = marked.parse(data.content);
                     const cleanHtml = DOMPurify.sanitize(rawHtml, { 
                         ADD_TAGS: ['span', 'div', 'math', 'details', 'summary'], 
                         ADD_ATTR: ['class', 'src', 'alt', 'data-math', 'open'],
@@ -394,35 +373,8 @@
                         SAFE_FOR_TEMPLATES: false
                     });
                     markdownBody.innerHTML = cleanHtml;
-                    function replaceMathComments(root) {
-                        const walker = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT, {
-                            acceptNode: (node) => {
-                                if (node.nodeValue && node.nodeValue.startsWith('MATH_BLOCK:')) {
-                                    return NodeFilter.FILTER_ACCEPT;
-                                }
-                                return NodeFilter.FILTER_SKIP;
-                            }
-                        });
-                        const comments = [];
-                        while (walker.nextNode()) {
-                            comments.push(walker.currentNode);
-                        }
-                        comments.forEach(comment => {
-                            const math = comment.nodeValue.substring('MATH_BLOCK:'.length).trim();
-                            const div = document.createElement('div');
-                            div.className = 'math-block';
-                            div.dataset.math = math;
-                            comment.parentNode.replaceChild(div, comment);
-                            try {
-                                katex.render(math, div, { displayMode: true, throwOnError: false });
-                            } catch (e) {
-                                div.innerHTML = `<span class="katex-error">${e.message}</span>`;
-                            }
-                        });
-                    }
-                    replaceMathComments(markdownBody);
 
-                    // 渲染行内公式
+                    // 渲染行内公式和块级公式（marked 不会干扰 $$，因此直接交给 auto-render）
                     renderMathInElement(markdownBody, {
                         delimiters: [
                             { left: "$$", right: "$$", display: true },
@@ -455,7 +407,7 @@
                             tocList.appendChild(li);
                         });
 
-                        // 为目录链接添加平滑滚动（整合自第一个页面）
+                        // 为目录链接添加平滑滚动
                         document.querySelectorAll('.toc-list a').forEach(a => {
                             a.addEventListener('click', e => {
                                 e.preventDefault();
