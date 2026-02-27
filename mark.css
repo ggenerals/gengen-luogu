@@ -6,14 +6,11 @@
 }
 
 p {
+    margin: 0; 
+    padding-block: 1em; 
     display: block;
-    margin-block-start: 1em;
-    margin-block-end: 1em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
     unicode-bidi: isolate;
 }
-
 /* ===== 自定义对齐类 ===== */
 .align-left {
     text-align: left !important;
