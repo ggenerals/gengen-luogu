@@ -110,23 +110,23 @@ summary {
 }
 
 .foldable {
-	padding: .5em 1em;
-	margin: 1em 0 1em .2em;
-	border-left-width: 5px;
-	border-left-style: solid;
-	overflow: hidden;
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1) allow-discrete;
+  padding: 1em;             
+  margin: 0 0 1em .2em;    
+  border-left-width: 5px;
+  border-left-style: solid;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-
-@starting-style {
-  details[open] > .foldable {
-    max-height: 0;
-  }
-}
-
 details[open] > .foldable {
-  max-height: 2000px;
+  max-height: 2000px;  
+}
+
+@supports (transition-behavior: allow-discrete) {
+  @starting-style {
+    details[open] > .foldable {
+      max-height: 0;
+    }
+  }
 }
 
 .foldable.info {
