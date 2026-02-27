@@ -6,7 +6,7 @@
 }
 
 p {
-    margin: 0; 
+    margin: 0 !important; 
     padding-block: 1em; 
     display: block;
     unicode-bidi: isolate;
@@ -248,33 +248,35 @@ details.foldable > :not(summary) {
   transition: 
     opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: opacity, transform; /* 🎯 性能优化 */
+  will-change: opacity, transform; 
+}
+
+details.foldable {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden; 
+}
+
+details.foldable[open] {
+  grid-template-rows: 1fr;
+}
+
+details.foldable > :not(summary) {
+  overflow: hidden;
+  min-height: 0;
+  
+  opacity: 0;
+  transform: translateY(-6px);
+  
+  transition: 
+    opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 details.foldable[open] > :not(summary) {
   opacity: 1;
   transform: translateY(0);
-}
-
-details.foldable[open] > :not(summary) > * {
-  animation: fadeInUp 0.3s ease forwards;
-  opacity: 0; 
-}
-
-details.foldable[open] > :not(summary) > *:nth-child(1) { animation-delay: 0.05s; }
-details.foldable[open] > :not(summary) > *:nth-child(2) { animation-delay: 0.1s; }
-details.foldable[open] > :not(summary) > *:nth-child(3) { animation-delay: 0.15s; }
-details.foldable[open] > :not(summary) > *:nth-child(n+4) { animation-delay: 0.2s; }
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
 }
 
 /* ===== 暗色模式适配 ===== */
