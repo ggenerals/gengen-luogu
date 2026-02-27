@@ -12,75 +12,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>云剪切板 · GenGen 洛谷国际</title>
-    <!-- 共用 favicon & 主样式表 (深色玻璃变量 + 侧边栏 + 基础框架) -->
+    <!-- 洛谷基础样式 + 扩展样式 (优先级低于 style.css: 先引入它们) -->
+    <link rel="stylesheet" href="https://luogu.qzz.io/mark.css">
+    <!-- 共用 favicon & 主样式表 (深色玻璃变量 + 侧边栏 + 基础框架) 后引入，优先级高 -->
     <link rel="icon" href="https://luogu.qzz.io/lgge.svg">
     <link rel="stylesheet" href="https://luogu.qzz.io/style.css">
-    <!-- GitHub Markdown 深色主题 + 代码高亮深色 -->
+    <!-- GitHub Markdown 深色主题 + 代码高亮深色 (背景将强制透明) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-dark.min.css">
     <link rel="stylesheet" href="https://cdn.timecdn.cn/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
-    <!-- 导入highlight-->
+    <!-- 导入 highlight.js -->
     <script src="https://cdn.timecdn.cn/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <!-- 聊天脚本 -->
     <script src="https://gengen.qzz.io/js/lgge-chat.js" defer></script>
-    <!-- KaTeX 样式 -->
+    <!-- KaTeX 样式 & 脚本 -->
     <link rel="stylesheet" href="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/katex.min.css">
+    <!-- marked 最新版本与 DOMPurify, KaTeX auto-render -->
     <script src="https://cdn.timecdn.cn/ajax/libs/marked/16.3.0/lib/marked.umd.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/dompurify/3.2.7/purify.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+    <!-- Font Awesome (提升图标体验) -->
+    <link rel="stylesheet" href="https://cdn.jsdmirror.cn/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css">
+
     <style>
-        .foldable {
-            margin: 1em 0;
-            padding: 0.5em 1em;
-            border: 1px solid #444c56;
+        .markdown-body {
+            background-color: transparent !important;
+        }
+        /* 代码块区域保留半透明深色背景以保证可读性，但仍透明 */
+        .markdown-body pre,
+        .markdown-body code {
+            background-color: rgba(0, 0, 0, 0.3) !important; 
+        }
+        /* 确保代码容器与第一个渲染器风格类似 */
+        .code-container {
             border-radius: 6px;
-            background-color: #2d333b;
-            transition: border-color 0.2s;
+            overflow: auto;
         }
-        .foldable:hover {
-            border-color: #768390;
-        }
-        .foldable summary {
-            font-weight: 600;
-            cursor: pointer;
-            color: #adbac7;
-            margin: -0.5em -1em -0.5em -1em;
-            padding: 0.5em 1em;
-            background-color: #373e47;
-            border-radius: 6px 6px 0 0;
-            border-bottom: 1px solid #444c56;
-        }
-        .foldable[open] summary {
-            margin-bottom: 0.5em;
-            border-bottom: 1px solid #444c56;
-        }
-        .foldable.info {
-            border-left: 4px solid #539bf5;
-        }
-        .foldable.warning {
-            border-left: 4px solid #e3b341;
-        }
-        .foldable.success {
-            border-left: 4px solid #57ab5a;
-        }
-        .foldable.error {
-            border-left: 4px solid #e5534b;
-        }
-        .foldable.bug {
-            border-left: 4px solid #d986ba;
-        }
-        .foldable.flask {
-            border-left: 4px solid #9e6bff;
-        }
-        .align-left { text-align: left; }
-        .align-center { text-align: center; }
-        .align-right { text-align: right; }
-        .epigraph {
-            font-style: italic;
-            margin: 1.5em 2em;
-            padding-left: 1em;
-            border-left: 3px solid #768390;
-            color: #768390;
-        }
+        /* 移除任何可能的内联折叠块样式——已由 mark.css 提供，无需重复 */
     </style>
 </head>
 <body>
@@ -116,7 +84,7 @@
                 <ol>
                     <li><a href="/">首页</a></li>
                     <li class="separator">/</li>
-                    <li><a href="/paste">云剪切板</a></li>
+                    <li><a href="/article">云剪切板</a></li>
                     <li class="separator">/</li>
                     <li class="breadcrumb-item">
                         <span class="breadcrumb-current" id="breadcrumb-current">加载中...</span>
@@ -138,6 +106,7 @@
                     </div>
                 </div>
 
+                <!-- 云剪切板主体：将使用新渲染引擎填充 -->
                 <div class="markdown-body" id="markdown-content">
                     <div class="loading">
                         <div class="spinner"></div>
@@ -167,155 +136,159 @@
     </div>
 
     <script>
-        (async function() {
-            // ---------- 确保 hljs 存在 ----------
+        (function() {
+            // ==================== 新渲染引擎 (完全移植自第一个文件) ====================
             if (typeof hljs === 'undefined') {
-                console.warn('hljs 未加载，代码高亮已禁用');
-                window.hljs = {
-                    highlight: (code) => ({ value: code }),
-                    highlightElement: (el) => {}
-                };
+                console.warn('hljs 未加载，使用降级');
+                window.hljs = { highlight: (code) => ({ value: code }), highlightElement: (el) => {} };
             }
 
-            // ---------- 增强扩展语法处理 (支持对齐、题词、折叠块，使用第一个页面的类名) ----------
-            function preprocessMarkdownExtensions(raw) {
-                if (!raw) return raw;
+            // ----- 1. 定义 marked 扩展（与第一个文件完全一致）-----
+            const customExtensions = [
+                {
+                    name: 'alignBlock',
+                    level: 'block',
+                    start(src) { return src.match(/^:::\s*align\s*\{([^}]+)\}/)?.index; },
+                    tokenizer(src, tokens) {
+                        const match = src.match(/^:::\s*align\s*\{([^}]+)\}([\s\S]*?)\n:::/);
+                        if (match) {
+                            return {
+                                type: 'alignBlock',
+                                raw: match[0],
+                                align: match[1].trim(),
+                                content: match[2].trim()
+                            };
+                        }
+                    },
+                    renderer(token) {
+                        return `<div class="align-${token.align}">${marked.parse(token.content)}</div>`;
+                    }
+                },
+                {
+                    name: 'epigraph',
+                    level: 'block',
+                    start(src) { return src.match(/^:::\s*epigraph(\[([^\]]+)\])?/)?.index; },
+                    tokenizer(src, tokens) {
+                        const match = src.match(/^:::\s*epigraph(\[([^\]]+)\])?\s*([\s\S]*?)\s*:::/);
+                        if (match) {
+                            return {
+                                type: 'epigraph',
+                                raw: match[0],
+                                author: match[2] || '',
+                                content: match[3].trim()
+                            };
+                        }
+                    },
+                    renderer(token) {
+                        const authorPart = token.author ? `<p>${token.author}</p>` : '<p>unknown author</p>';
+                        return `<div class="epigraph">${marked.parse(token.content)}${authorPart}</div>`;
+                    }
+                },
+                {
+                    name: 'foldable',
+                    level: 'block',
+                    start(src) { return src.match(/^:{3,}/)?.index; },
+                    tokenizer(src, tokens) {
+                        const match = src.match(/^(:{3,})\s*(\w+)?(\[([^\]]+)\])?(\s*\{([^}]+)\})?\s*([\s\S]*?)\s*\1/);
+                        if (match && ['info','warning','success','error','bug','flask'].includes(match[2])) {
+                            return {
+                                type: 'foldable',
+                                raw: match[0],
+                                foldType: match[2] || 'info',
+                                title: match[4] || '',
+                                options: match[6] || '',
+                                content: match[7].trim()
+                            };
+                        }
+                    },
+                    renderer(token) {
+                        const isOpen = token.options.includes('open');
+                        return `
+                            <details class="foldable ${token.foldType}" ${isOpen ? 'open' : ''}>
+                                <summary>${token.title || '点击展开'}</summary>
+                                ${marked.parse(token.content)}
+                            </details>
+                        `;
+                    }
+                }
+            ];
 
-                // 处理块级公式 $$...$$ (前后加换行，避免破坏表格等块级元素)
-                raw = raw.replace(/^\s*\$\$([\s\S]*?)\$\$\s*/gm, (match, p1) => {
-                    return '\n\n<!-- MATH_BLOCK: ' + p1.trim() + ' -->\n\n';
+            marked.use({ extensions: customExtensions });
+
+            // ----- 2. 自定义 renderer 实现代码高亮 (与第一个文件相同) -----
+            const renderer = new marked.Renderer();
+            renderer.code = function (code, language) {
+                const lang = language || 'plaintext';
+                let highlighted = code;
+                if (language && hljs.getLanguage(lang)) {
+                    try {
+                        highlighted = hljs.highlight(code, { language: lang, ignoreIllegals: true }).value;
+                    } catch (e) {}
+                }
+                return `<div class="code-container"><pre><code class="language-${lang}">${highlighted}</code></pre></div>`;
+            };
+
+            marked.setOptions({
+                breaks: false,
+                gfm: true,
+                mangle: false,
+                headerIds: false,
+                renderer: renderer
+            });
+
+            // ----- 3. 核心渲染函数 (含预处理、清洗、公式) -----
+            function renderMarkdown(text) {
+                // 预处理：公式换行 & 表格修复
+                text = text.replace(/(^|\s)\$\$\s*\n([\s\S]*?)\n\s*\$\$(?=\s|$)/gm, '$1\n$$$$$2$$$$\n');
+                text = text.replace(/([^\n])\n(\|.*\|)\n(\|.*[-:].*\|)/g, '$1\n\n$2\n$3');
+
+                const rawHtml = marked.parse(text);
+                const cleanHtml = DOMPurify.sanitize(rawHtml, {
+                    ADD_TAGS: ['span', 'div', 'math', 'details', 'summary', 'i', 'font'],
+                    ADD_ATTR: ['class', 'src', 'alt', 'data-math', 'open', 'referrerpolicy', 'crossorigin'],
+                    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+                    SAFE_FOR_TEMPLATES: false
                 });
 
-                // 基于行的容器指令解析器 (支持 ::: 及以上嵌套)
-                function convertContainerDirectives(text) {
-                    const lines = text.split('\n');
-                    const stack = [];
-                    const rootPieces = [];
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cleanHtml;
 
-                    for (let i = 0; i < lines.length; i++) {
-                        let line = lines[i];
-                        let startMatch = line.match(/^(:::+)(\w+)(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$/);
-                        if (startMatch && startMatch[1].length >= 3) {
-                            const level = startMatch[1].length;
-                            const type = startMatch[2];
-                            const title = startMatch[3] || '';
-                            const attrs = startMatch[4] || '';
-                            const node = { level, type, title, attrs, content: [] };
-                            stack.push(node);
-                            continue;
-                        }
+                renderMathInElement(tempDiv, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    strict: false,
+                    escape: false,
+                    preProcess: (math) => math.replace(/\\(\r?\n)/g, '\\\\$1')
+                });
 
-                        if (stack.length > 0) {
-                            const top = stack[stack.length - 1];
-                            const endPattern = new RegExp(`^:{${top.level}}\\s*$`);
-                            if (endPattern.test(line)) {
-                                const node = stack.pop();
-                                let innerContent = node.content.join('');
-                                
-                                let html = '';
-                                const attrs = node.attrs;
-                                const openAttr = attrs.includes('open') ? ' open' : '';
-                                
-                                // 根据类型生成不同 HTML（采用第一个页面的类名）
-                                if (node.type === 'align') {
-                                    const align = attrs.trim() || 'left';
-                                    html = `<div class="align-${align}">${innerContent}</div>`;
-                                } else if (node.type === 'epigraph') {
-                                    html = `<div class="epigraph">${innerContent}</div>`;
-                                } else if (['info', 'warning', 'success', 'error', 'bug', 'flask'].includes(node.type)) {
-                                    // 折叠块
-                                    const summary = node.title ? node.title : '点击展开';
-                                    html = `<details class="foldable ${node.type}"${openAttr ? ' open' : ''}><summary>${summary}</summary>${innerContent}</details>`;
-                                } else {
-                                    // 其他类型保留原有 alert 样式
-                                    const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
-                                    html = `<div class="markdown-alert markdown-alert-${node.type}${openAttr}">${titleHtml}${innerContent}</div>`;
-                                }
+                tempDiv.querySelectorAll('img').forEach(img => {
+                    img.setAttribute('referrerpolicy', 'no-referrer');
+                    img.setAttribute('crossorigin', 'anonymous');
+                });
 
-                                // 前后加换行，保证块级分隔
-                                html = '\n\n' + html + '\n\n';
-
-                                if (stack.length > 0) {
-                                    stack[stack.length - 1].content.push(html);
-                                } else {
-                                    rootPieces.push(html);
-                                }
-                                continue;
-                            }
-                        }
-
-                        if (stack.length > 0) {
-                            stack[stack.length - 1].content.push(line + '\n');
-                        } else {
-                            rootPieces.push(line + '\n');
-                        }
-                    }
-
-                    while (stack.length > 0) {
-                        const node = stack.pop();
-                        let innerContent = node.content.join('');
-                        let html = '';
-                        const attrs = node.attrs;
-                        const openAttr = attrs.includes('open') ? ' open' : '';
-                        
-                        if (node.type === 'align') {
-                            const align = attrs.trim() || 'left';
-                            html = `<div class="align-${align}">${innerContent}</div>`;
-                        } else if (node.type === 'epigraph') {
-                            html = `<div class="epigraph">${innerContent}</div>`;
-                        } else if (['info', 'warning', 'success', 'error', 'bug', 'flask'].includes(node.type)) {
-                            const summary = node.title ? node.title : '点击展开';
-                            html = `<details class="foldable ${node.type}"${openAttr ? ' open' : ''}><summary>${summary}</summary>${innerContent}</details>`;
-                        } else {
-                            const titleHtml = node.title ? `<div class="markdown-alert-title">${node.title}</div>` : '';
-                            html = `<div class="markdown-alert markdown-alert-${node.type}${openAttr}">${titleHtml}${innerContent}</div>`;
-                        }
-                        
-                        html = '\n\n' + html + '\n\n';
-
-                        if (stack.length > 0) {
-                            stack[stack.length - 1].content.push(html);
-                        } else {
-                            rootPieces.push(html);
-                        }
-                    }
-
-                    return rootPieces.join('');
-                }
-
-                return convertContainerDirectives(raw);
+                return tempDiv.innerHTML;
             }
 
-            // ---------- 获取云剪切板 ID ----------
+            // ========== 原有业务逻辑：获取云剪切板ID、加载数据、绑定按钮 ==========
             let articleId = null;
             const path = window.location.pathname;
-            const pathMatch = path.match(/\/paste\/([a-z0-9]+)/);
+            const pathMatch = path.match(/\/article\/([a-z0-9]+)/);
             if (pathMatch) articleId = pathMatch[1];
             if (!articleId && window.location.hash) articleId = window.location.hash.replace(/^#/, '').trim();
             if (!articleId) {
                 const params = new URLSearchParams(window.location.search);
                 articleId = params.get('id');
             }
-
             if (!articleId || articleId.length < 3) {
-                articleId = 'yx7hyde9';
+                articleId = 'yx7hyde9'; // 默认演示ID
             }
 
             document.getElementById('breadcrumb-current').innerText = `ID: ${articleId}`;
 
-            // ---------- 设置 marked (使用 highlight 选项) ----------
-            marked.setOptions({
-                gfm: true,
-                breaks: true,
-                smartypants: true,
-                highlight: (code, lang) => {
-                    const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
-                    return hljs.highlight(code, { language: validLang }).value;
-                },
-                extensions: [] // 完全依赖预处理，不使用额外扩展
-            });
-
-            // ---------- DOM 元素 ----------
             const titleEl = document.getElementById('dynamic-article-title');
             const authorAvatar = document.getElementById('author-avatar');
             const authorLink = document.getElementById('author-link');
@@ -327,9 +300,8 @@
             const tocList = document.getElementById('toc-list');
             const breadcrumbSpan = document.getElementById('breadcrumb-current');
 
-            // ---------- 加载云剪切板数据 ----------
             async function loadArticle(forceUpdate = false) {
-                let apiUrl = `https://luogu.qzz.io/api/p/${articleId}`;
+                let apiUrl = `https://luogu.qzz.io/api/a/${articleId}`;
                 if (forceUpdate) {
                     apiUrl += '?update=1';
                 }
@@ -339,16 +311,16 @@
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
 
-                    if (!data.success || data.type !== 'paste') {
+                    if (!data.success || data.type !== 'article') {
                         throw new Error(data.message || '无效的云剪切板数据');
                     }
-                    data.title = data.author.name + "的云剪切板";
+                    data.title=data.author.name+=" 的云剪切板";
                     titleEl.innerText = data.title;
                     document.title = `${data.title} - GenGen 洛谷国际`;
                     breadcrumbSpan.innerText = data.title;
 
                     authorAvatar.src = `https://cdn.luogu.com.cn/upload/usericon/${data.author.uid}.png`;
-                    authorLink.href = `https://luogu.store/u/${data.author.uid}`;
+                    authorLink.href = `https://luogu.com.cn/user/${data.author.uid}`;
                     authorLink.innerText = data.author.name;
 
                     const ts = data.updated_at > 1e12 ? data.updated_at : data.updated_at * 1000;
@@ -382,60 +354,9 @@
                         }
                     };
 
-                    // 预处理扩展语法
-                    let processedContent = preprocessMarkdownExtensions(data.content);
-
-                    // 渲染 Markdown
-                    const rawHtml = marked.parse(processedContent);
-                    const cleanHtml = DOMPurify.sanitize(rawHtml, { 
-                        ADD_TAGS: ['span', 'div', 'math', 'details', 'summary'], 
-                        ADD_ATTR: ['class', 'src', 'alt', 'data-math', 'open'],
-                        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-                        SAFE_FOR_TEMPLATES: false
-                    });
-                    markdownBody.innerHTML = cleanHtml;
-                    function replaceMathComments(root) {
-                        const walker = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT, {
-                            acceptNode: (node) => {
-                                if (node.nodeValue && node.nodeValue.startsWith('MATH_BLOCK:')) {
-                                    return NodeFilter.FILTER_ACCEPT;
-                                }
-                                return NodeFilter.FILTER_SKIP;
-                            }
-                        });
-                        const comments = [];
-                        while (walker.nextNode()) {
-                            comments.push(walker.currentNode);
-                        }
-                        comments.forEach(comment => {
-                            const math = comment.nodeValue.substring('MATH_BLOCK:'.length).trim();
-                            const div = document.createElement('div');
-                            div.className = 'math-block';
-                            div.dataset.math = math;
-                            comment.parentNode.replaceChild(div, comment);
-                            try {
-                                katex.render(math, div, { displayMode: true, throwOnError: false });
-                            } catch (e) {
-                                div.innerHTML = `<span class="katex-error">${e.message}</span>`;
-                            }
-                        });
-                    }
-
-                    replaceMathComments(markdownBody);
-
-                    // 渲染行内公式
-                    renderMathInElement(markdownBody, {
-                        delimiters: [
-                            { left: "$$", right: "$$", display: true },
-                            { left: "$", right: "$", display: false }
-                        ],
-                        throwOnError: false
-                    });
-
-                    // 代码高亮
-                    markdownBody.querySelectorAll('pre code').forEach(block => {
-                        hljs.highlightElement(block);
-                    });
+                    // 使用新渲染引擎渲染内容
+                    const finalHtml = renderMarkdown(data.content);
+                    markdownBody.innerHTML = finalHtml;
 
                     // 生成目录
                     const headers = markdownBody.querySelectorAll('h1, h2, h3');
@@ -456,7 +377,6 @@
                             tocList.appendChild(li);
                         });
 
-                        // 为目录链接添加平滑滚动（整合自第一个页面）
                         document.querySelectorAll('.toc-list a').forEach(a => {
                             a.addEventListener('click', e => {
                                 e.preventDefault();
@@ -478,7 +398,7 @@
                 }
             }
 
-            await loadArticle(false);
+            loadArticle(false);
 
             updateBtn.onclick = () => {
                 markdownBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>更新中...</p></div>';

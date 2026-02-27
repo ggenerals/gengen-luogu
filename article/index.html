@@ -320,7 +320,7 @@
                     breadcrumbSpan.innerText = data.title;
 
                     authorAvatar.src = `https://cdn.luogu.com.cn/upload/usericon/${data.author.uid}.png`;
-                    authorLink.href = `https://luogu.store/u/${data.author.uid}`;
+                    authorLink.href = `https://luogu.com.cn/user/${data.author.uid}`;
                     authorLink.innerText = data.author.name;
 
                     const ts = data.updated_at > 1e12 ? data.updated_at : data.updated_at * 1000;
