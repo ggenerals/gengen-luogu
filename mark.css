@@ -114,7 +114,19 @@ summary {
 	margin: 1em 0 1em .2em;
 	border-left-width: 5px;
 	border-left-style: solid;
-	overflow: hidden
+	overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1) allow-discrete;
+}
+
+
+@starting-style {
+  details[open] > .foldable {
+    max-height: 0;
+  }
+}
+
+details[open] > .foldable {
+  max-height: 2000px;
 }
 
 .foldable.info {
