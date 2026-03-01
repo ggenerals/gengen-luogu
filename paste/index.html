@@ -33,23 +33,6 @@
     <script src="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
     <!-- Font Awesome (提升图标体验) -->
     <link rel="stylesheet" href="https://cdn.jsdmirror.cn/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css">
-
-    <style>
-        .markdown-body {
-            background-color: transparent !important;
-        }
-        /* 代码块区域保留半透明深色背景以保证可读性，但仍透明 */
-        .markdown-body pre,
-        .markdown-body code {
-            background-color: rgba(0, 0, 0, 0.3) !important; 
-        }
-        /* 确保代码容器与第一个渲染器风格类似 */
-        .code-container {
-            border-radius: 6px;
-            overflow: auto;
-        }
-        /* 移除任何可能的内联折叠块样式——已由 mark.css 提供，无需重复 */
-    </style>
 </head>
 <body>
     <!-- 侧边栏 (与主页一致，云剪切板项 active) -->
@@ -215,12 +198,14 @@
 
             marked.use({ extensions: customExtensions });
 
-            // ----- 2. 自定义 renderer 实现代码高亮 (与第一个文件相同) -----
+            // ----- 2. 自定义 renderer 实现代码高亮 -----
             const renderer = new marked.Renderer();
             renderer.code = function (code, language) {
-                const lang = language || 'plaintext';
+                code=code.text;
+                const lang = language || 'cpp';
                 let highlighted = code;
-                if (language && hljs.getLanguage(lang)) {
+                console.log(lang);
+                if (lang) {
                     try {
                         highlighted = hljs.highlight(code, { language: lang, ignoreIllegals: true }).value;
                     } catch (e) {}
@@ -243,13 +228,7 @@
                 text = text.replace(/([^\n])\n(\|.*\|)\n(\|.*[-:].*\|)/g, '$1\n\n$2\n$3');
 
                 const rawHtml = marked.parse(text);
-                const cleanHtml = DOMPurify.sanitize(rawHtml, {
-                    ADD_TAGS: ['span', 'div', 'math', 'details', 'summary', 'i', 'font'],
-                    ADD_ATTR: ['class', 'src', 'alt', 'data-math', 'open', 'referrerpolicy', 'crossorigin'],
-                    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-                    SAFE_FOR_TEMPLATES: false
-                });
-
+                const cleanHtml = rawHtml;
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = cleanHtml;
 
@@ -301,7 +280,7 @@
             const breadcrumbSpan = document.getElementById('breadcrumb-current');
 
             async function loadArticle(forceUpdate = false) {
-                let apiUrl = `https://luogu.qzz.io/api/a/${articleId}`;
+                let apiUrl = `https://luogu.qzz.io/api/p/${articleId}`;
                 if (forceUpdate) {
                     apiUrl += '?update=1';
                 }
@@ -311,10 +290,10 @@
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
 
-                    if (!data.success || data.type !== 'article') {
+                    if (!data.success || data.type !== 'paste') {
                         throw new Error(data.message || '无效的云剪切板数据');
                     }
-                    data.title=data.author.name+=" 的云剪切板";
+                    data.title=data.author.name+" 的云剪切板";
                     titleEl.innerText = data.title;
                     document.title = `${data.title} - GenGen 洛谷国际`;
                     breadcrumbSpan.innerText = data.title;
