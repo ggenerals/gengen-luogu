@@ -255,7 +255,7 @@
             // ========== 原有业务逻辑：获取云剪切板ID、加载数据、绑定按钮 ==========
             let articleId = null;
             const path = window.location.pathname;
-            const pathMatch = path.match(/\/article\/([a-z0-9]+)/);
+            const pathMatch = path.match(/\/paste\/([a-z0-9]+)/);
             if (pathMatch) articleId = pathMatch[1];
             if (!articleId && window.location.hash) articleId = window.location.hash.replace(/^#/, '').trim();
             if (!articleId) {
