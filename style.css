@@ -592,7 +592,7 @@ h1 span {
    =========================== */
 .site-footer {
     margin-top: auto;
-    padding: 2rem 2rem 1.5rem;
+    padding: 1rem 1rem 1rem;
     background: var(--surface);
     backdrop-filter: var(--blur);
     border-top: 1px solid var(--border);
