@@ -170,7 +170,7 @@ body {
     flex-direction: column;
     transition: margin-left var(--transition);
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
     overflow-y: scroll;
 }
 
@@ -587,6 +587,53 @@ h1 span {
     scrollbar-color: var(--primary) var(--surface);
 }
 
+/* ===========================
+   页脚样式
+   =========================== */
+.site-footer {
+    margin-top: auto;
+    padding: 2rem 2rem 1.5rem;
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+    border-top: 1px solid var(--border);
+    text-align: right;
+}
+
+.footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+
+.footer-links a {
+    color: #58a6ff;
+    text-decoration: none;
+    transition: color 0.2s;
+    white-space: nowrap;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+    color: var(--primary);
+}
+
+.footer-separator {
+    color: var(--text-muted);
+    margin: 0 0.25rem;
+}
+
+.footer-copyright {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.footer-copyright p {
+    margin: 0.25rem 0;
+}
+
 /* 响应式调整 */
 @media (max-width: 1024px) {
     .content {
@@ -603,5 +650,14 @@ h1 span {
     .toc-container, .save-time, .action-buttons {
         flex: 1;
         min-width: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .site-footer {
+        text-align: center;
+    }
+    .footer-links {
+        justify-content: center;
     }
 }
