@@ -7,7 +7,7 @@
 
 p {
     margin: 0 !important; 
-    padding-block: 1em; 
+    padding-block: 0.5em; 
     display: block;
     unicode-bidi: isolate;
 }

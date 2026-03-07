@@ -613,6 +613,7 @@ h1 span {
     text-decoration: none;
     transition: color 0.2s;
     white-space: nowrap;
+    font-size: 13px;
 }
 
 .footer-links a:hover {
@@ -632,6 +633,7 @@ h1 span {
 
 .footer-copyright p {
     margin: 0.25rem 0;
+    font-size: 11px;
 }
 
 /* 响应式调整 */
