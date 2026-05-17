@@ -193,3 +193,25 @@ details[open]>summary::after {
 .markdown-body {
 	background-color: transparent !important;
 }
+
+/* ===== 折叠面板非线性动画（纯 CSS） ===== */
+.foldable {
+    /* ✅ 保留原有所有样式... */
+    overflow: hidden;
+    
+    /* 🆕 新增：grid 动画容器 */
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(.4, 0, .2, 1);
+    will-change: grid-template-rows; /* 性能优化 */
+}
+
+details[open] > .foldable {
+    grid-template-rows: 1fr;
+}
+
+/* ✅ 兼容多子元素：确保内容参与高度计算 */
+.foldable > * {
+    min-height: 0;
+    overflow: hidden;
+}
