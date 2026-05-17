@@ -13,6 +13,7 @@
     --blur: blur(12px);
     --radius: 16px;
     --transition: 0.35s cubic-bezier(.4, 0, .2, 1);
+    --fade-fast: 0.15s cubic-bezier(.4, 0, .2, 1); /* 🆕 新增：非线性快速淡入淡出变量 */
 }
 
 /* ===========================
@@ -95,7 +96,7 @@ body {
     font-weight: 600;
     white-space: nowrap;
     opacity: 0;
-    transition: opacity var(--transition), margin-left var(--transition);
+    transition: opacity var(--fade-fast), margin-left var(--transition); /* 🔄 修改：淡出改为快速非线性 */
 }
 
 .sidebar:hover .sidebar-title {
@@ -127,7 +128,7 @@ body {
 .nav-item .text {
     opacity: 0;
     white-space: nowrap;
-    transition: opacity var(--transition);
+    transition: opacity var(--fade-fast); /* 🔄 修改：文字淡入改为快速非线性 */
 }
 
 .sidebar:hover .nav-item .text {
@@ -172,6 +173,12 @@ body {
     width: 100%;
     min-height: 100vh;
     overflow-y: scroll;
+    animation: fadeInPage 0.3s var(--fade-fast) both; /* 🆕 新增：页面加载快速淡入 */
+}
+
+@keyframes fadeInPage {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .sidebar:hover ~ .main {
@@ -366,7 +373,7 @@ h1 span {
     overflow: visible;
     transition: 
         width 0.35s var(--transition),
-        opacity 0.3s ease,
+        opacity var(--fade-fast), /* 🔄 修改：左侧栏隐藏时快速淡出 */
         padding 0.3s ease;
 }
 
