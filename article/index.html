@@ -24,7 +24,7 @@
     <script src="https://cdn.timecdn.cn/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
     
     <!-- Chat Script -->
-    <script src="https://gengen.qzz.io/js/lgge-chat.js" defer></script>
+    <!--script src="https://gengen.qzz.io/js/lgge-chat.js" defer></script>
     
     <!-- KaTeX -->
     <link rel="stylesheet" href="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/katex.min.css">
@@ -35,6 +35,25 @@
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdmirror.cn/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css">
+
+    <!-- 🆕 广场模式布局调整样式 -->
+    <style>
+        body.square-mode .article-right {
+            display: none !important;
+        }
+        body.square-mode .square-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        body.square-mode #update-btn {
+            display: inline-block;
+            margin-left: 16px;
+            font-size: 0.9em;
+            padding: 6px 14px;
+        }
+    </style>
 </head>
 <body>
     <!-- 侧边栏 -->
@@ -84,7 +103,7 @@
                 <!-- 🆕 文章广场容器 -->
                 <div id="article-square" class="article-square" style="display:none;">
                     <div class="square-header">
-                        <h1 class="square-title">📚 文章广场</h1>
+                        <h1 class="square-title">文章广场</h1>
                     </div>
                     <div class="square-grid" id="square-grid">
                         <div class="loading-spinner">
@@ -262,6 +281,9 @@
 
         // ==================== 文章广场模式 ====================
         async function loadSquare() {
+            // 🆕 启用广场布局模式
+            document.body.classList.add('square-mode');
+
             els.square.style.display = 'block';
             els.header.style.display = 'none';
             els.content.style.display = 'none';
@@ -320,6 +342,9 @@
 
         // ==================== 单篇文章模式 ====================
         async function loadArticle(forceUpdate = false) {
+            // 🆕 退出广场布局模式
+            document.body.classList.remove('square-mode');
+
             els.square.style.display = 'none';
             els.header.style.display = '';
             els.content.style.display = '';
