@@ -360,7 +360,7 @@
                 const resp = await fetch(apiUrl, { mode: 'cors' });
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const data = await resp.json();
-                if (!data.success || data.type !== 'article') throw new Error(data.message || '无效的剪贴板数据');
+                if (!data.success || data.type !== 'paste') throw new Error(data.message || '无效的剪贴板数据');
 
                 els.title.innerText = data.title;
                 document.title = `${data.title} - GenGen 洛谷国际`;
