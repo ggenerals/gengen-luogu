@@ -242,7 +242,7 @@ body {
     background: var(--surface);
     backdrop-filter: var(--blur);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: var(8px);
     padding: 60px 80px;
     text-align: center;
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
@@ -365,29 +365,15 @@ h1 span {
     box-sizing: border-box;
 }
 
-.article-left {
-    width: 222px !important;
-    flex-shrink: 0 !important;
-    opacity: 1;
-    padding: 0 1rem 0 0;
-    overflow: visible;
-    transition: 
-        width 0.35s var(--transition),
-        opacity var(--fade-fast), /* 🔄 修改：左侧栏隐藏时快速淡出 */
-        padding 0.3s ease;
-}
-
-@media (max-width: 1399px) {
-    .article-left {
-        width: 0 !important;
-        flex-shrink: 1 !important;
-        min-width: 0;
-        overflow: hidden;
-        padding: 0 !important;
-        margin: 0;
-        opacity: 0;
-    }
-}
+ .article-left {
+     width: 0 !important;
+     flex-shrink: 1 !important;
+     min-width: 0;
+     overflow: hidden;
+     padding: 0 !important;
+     margin: 0;
+     opacity: 0;
+ }
 
 .article-middle {
     flex: 1;
