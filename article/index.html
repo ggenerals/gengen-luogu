@@ -275,21 +275,29 @@
                 return tempDiv.innerHTML;
             }
 
-            // ========== 原有业务逻辑：获取文章ID、加载数据、绑定按钮 ==========
+                        // ========== 修改后的业务逻辑：支持随机文章接口 ==========
             let articleId = null;
+            let isRandomMode = false; // 标记是否为随机模式
+
             const path = window.location.pathname;
             const pathMatch = path.match(/\/article\/([a-z0-9]+)/);
-            if (pathMatch) articleId = pathMatch[1];
-            if (!articleId && window.location.hash) articleId = window.location.hash.replace(/^#/, '').trim();
-            if (!articleId) {
+            
+            // 优先使用URL路径中的ID
+            if (pathMatch) {
+                articleId = pathMatch[1];
+            } else if (window.location.hash) {
+                articleId = window.location.hash.replace(/^#/, '').trim();
+            } else {
                 const params = new URLSearchParams(window.location.search);
                 articleId = params.get('id');
             }
+
+            // 如果没有指定ID，则进入随机模式
             if (!articleId || articleId.length < 3) {
-                articleId = 'vwe2axcb'; // 默认演示ID
+                isRandomMode = true;
             }
 
-            document.getElementById('breadcrumb-current').innerText = `ID: ${articleId}`;
+            document.getElementById('breadcrumb-current').innerText = isRandomMode ? '随机文章' : `ID: ${articleId}`;
 
             const titleEl = document.getElementById('dynamic-article-title');
             const authorAvatar = document.getElementById('author-avatar');
@@ -303,27 +311,60 @@
             const breadcrumbSpan = document.getElementById('breadcrumb-current');
 
             async function loadArticle(forceUpdate = false) {
-                let apiUrl = `https://luogu.qzz.io/api/a/${articleId}`;
-                if (forceUpdate) {
-                    apiUrl += '?update=1';
+                let apiUrl;
+                let currentIsRandom = isRandomMode && !forceUpdate;
+
+                // 如果是强制更新且当前是随机模式，我们仍然可以重新请求随机接口
+                // 或者你可以选择在有具体ID后锁定不再随机
+                if (currentIsRandom) {
+                    apiUrl = 'https://luogu.qzz.io/api/rand/a';
+                } else {
+                    apiUrl = `https://luogu.qzz.io/api/a/${articleId}${forceUpdate ? '?update=1' : ''}`;
                 }
 
                 try {
                     const resp = await fetch(apiUrl, { mode: 'cors' });
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                    const data = await resp.json();
+                    const json = await resp.json();
 
-                    if (!data.success || data.type !== 'article') {
-                        throw new Error(data.message || '无效的文章数据');
+                    let data;
+                    // 兼容两种接口格式
+                    if (currentIsRandom && json.data && Array.isArray(json.data)) {
+                        // 随机接口返回的是数组，取第一个
+                        if (json.data.length === 0) throw new Error('随机文章池为空');
+                        data = json.data[0];
+                        // 注意：根据你的JSON示例，随机接口的author可能是字符串
+                        // 而渲染逻辑需要 author.uid 和 author.name
+                        // 这里做一层适配
+                        if (typeof data.author === 'string') {
+                            data.author = { name: data.author, uid: 0 }; 
+                        }
+                        // 随机接口可能没有 updated_at，给个默认值防止报错
+                        if (!data.updated_at) data.updated_at = Date.now();
+                    } else if (json.type === 'article') {
+                        data = json;
+                    } else {
+                        throw new Error(json.message || '无效的文章数据');
+                    }
+
+                    // 如果是随机模式加载成功，更新面包屑显示实际标题或ID
+                    if (currentIsRandom) {
+                        breadcrumbSpan.innerText = data.title || `ID: ${data.id}`;
                     }
 
                     titleEl.innerText = data.title;
                     document.title = `${data.title} - GenGen 洛谷国际`;
-                    breadcrumbSpan.innerText = data.title;
 
-                    authorAvatar.src = `https://cdn.luogu.com.cn/upload/usericon/${data.author.uid}.png`;
-                    authorLink.href = `https://luogu.com.cn/user/${data.author.uid}`;
-                    authorLink.innerText = data.author.name;
+                    // 头像处理（兼容uid为0或不存在的情况）
+                    if (data.author.uid && data.author.uid !== 0) {
+                        authorAvatar.src = `https://cdn.luogu.com.cn/upload/usericon/${data.author.uid}.png`;
+                        authorLink.href = `https://luogu.com.cn/user/${data.author.uid}`;
+                    } else {
+                        // 无有效UID时的降级显示
+                        authorAvatar.src = 'https://luogu.qzz.io/lgge.svg'; 
+                        authorLink.href = '#';
+                    }
+                    authorLink.innerText = data.author.name || '未知作者';
 
                     const ts = data.updated_at > 1e12 ? data.updated_at : data.updated_at * 1000;
                     const d = new Date(ts);
@@ -338,7 +379,9 @@
                     copyBtn.disabled = false;
 
                     originalBtn.onclick = () => {
-                        if (data.original_url) window.open(data.original_url.trim(), '_blank');
+                        // 优先使用接口返回的url，其次拼接标准路径
+                        const url = data.url || data.original_url || `https://luogu.qzz.io/article/${data.id}`;
+                        window.open(url.trim(), '_blank');
                     };
 
                     copyBtn.onclick = async () => {
@@ -367,9 +410,7 @@
                         headers.forEach((h, index) => {
                             const level = parseInt(h.tagName[1]);
                             let text = h.innerText;
-                            if (!h.id) {
-                                h.id = `toc-header-${index}`;
-                            }
+                            if (!h.id) h.id = `toc-header-${index}`;
                             const li = document.createElement('li');
                             const a = document.createElement('a');
                             a.href = `#${h.id}`;
@@ -383,9 +424,7 @@
                             a.addEventListener('click', e => {
                                 e.preventDefault();
                                 const target = document.querySelector(a.getAttribute('href'));
-                                if (target) {
-                                    target.scrollIntoView({ behavior: 'smooth' });
-                                }
+                                if (target) target.scrollIntoView({ behavior: 'smooth' });
                             });
                         });
                     } else {
