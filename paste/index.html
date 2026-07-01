@@ -307,7 +307,7 @@
                 json.data.forEach(item => {
                     const card = document.createElement('a');
                     card.className = 'square-card';
-                    card.href = `//${item.id}`;
+                    card.href = `//https://luogu.qzz.io/paste/${item.id}`;
 
                     // 提取纯文本摘要
                     const excerpt = (item.content || '')
