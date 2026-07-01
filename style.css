@@ -699,3 +699,152 @@ h1 span {
         justify-content: center;
     }
 }
+
+
+/* ===========================
+  页面专属样式
+  =========================== */
+
+/* --- 文章广场 (2列 x 10行) --- */
+.article-square {
+   width: 100%;
+   padding: 10px 0 40px;
+   animation: fadeIn var(--transition) ease-out;
+}
+
+.square-header {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   margin-bottom: 24px;
+   padding: 0 4px;
+}
+
+.square-title {
+   font-size: 1.75rem;
+   font-weight: 700;
+   color: var(--text);
+   margin: 0;
+   letter-spacing: -0.02em;
+}
+
+.square-grid {
+   display: grid;
+   grid-template-columns: repeat(2, 1fr); /* 固定2列 */
+   gap: 20px;
+}
+
+.square-card {
+   background: var(--surface);
+   backdrop-filter: var(--blur);
+   -webkit-backdrop-filter: var(--blur);
+   border: 1px solid var(--border);
+   border-radius: var(--radius);
+   padding: 24px;
+   cursor: pointer;
+   transition: all var(--transition);
+   display: flex;
+   flex-direction: column;
+   justify-content: space-between;
+   min-height: 160px;
+   text-decoration: none !important;
+   position: relative;
+   overflow: hidden;
+}
+
+.square-card::before {
+   content: '';
+   position: absolute;
+   inset: 0;
+   background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+   opacity: 0;
+   transition: opacity var(--fade-fast);
+}
+
+.square-card:hover {
+   transform: translateY(-4px);
+   border-color: var(--primary);
+   box-shadow: 0 8px 32px rgba(0, 255, 200, 0.08);
+}
+
+.square-card:hover::before { opacity: 1; }
+
+.card-title {
+   font-size: 1.2rem;
+   font-weight: 600;
+   color: var(--text);
+   margin-bottom: 12px;
+   line-height: 1.4;
+   display: -webkit-box;
+   -webkit-line-clamp: 2;
+   -webkit-box-orient: vertical;
+   overflow: hidden;
+}
+
+.card-excerpt {
+   font-size: 0.9rem;
+   color: var(--text-muted);
+   line-height: 1.6;
+   margin-bottom: 16px;
+   flex-grow: 1;
+   display: -webkit-box;
+   -webkit-line-clamp: 3;
+   -webkit-box-orient: vertical;
+   overflow: hidden;
+}
+
+.card-meta {
+   display: flex;
+   align-items: center;
+   gap: 12px;
+   font-size: 0.8rem;
+   color: var(--text-muted);
+   border-top: 1px solid var(--border);
+   padding-top: 12px;
+   margin-top: auto;
+}
+
+.card-author {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+   color: var(--primary);
+   font-weight: 500;
+}
+
+/* --- 响应式：移动端切为单列 --- */
+@media (max-width: 768px) {
+   .square-grid { grid-template-columns: 1fr; }
+   .square-card { min-height: 140px; padding: 20px; }
+}
+
+/* --- 通用工具类 --- */
+@keyframes fadeIn {
+   from { opacity: 0; transform: translateY(10px); }
+   to { opacity: 1; transform: translateY(0); }
+}
+
+.loading-spinner {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   padding: 60px 0;
+   color: var(--text-muted);
+   gap: 16px;
+   grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+   .loading-spinner { grid-column: span 1; }
+}
+
+.spinner {
+   width: 32px; height: 32px;
+   border: 3px solid var(--border);
+   border-top-color: var(--primary);
+   border-radius: 50%;
+   animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
