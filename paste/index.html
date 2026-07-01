@@ -11,31 +11,52 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>云剪切板 · GenGen 洛谷国际</title>
-    <!-- 洛谷基础样式 + 扩展样式 (优先级低于 style.css: 先引入它们) -->
+    <title>剪贴板 · GenGen 洛谷国际</title>
+    
+    <!-- 基础样式 -->
     <link rel="stylesheet" href="https://luogu.qzz.io/mark.css">
-    <!-- 共用 favicon & 主样式表 (深色玻璃变量 + 侧边栏 + 基础框架) 后引入，优先级高 -->
     <link rel="icon" href="https://luogu.qzz.io/lgge.svg">
     <link rel="stylesheet" href="https://luogu.qzz.io/style.css">
-    <!-- GitHub Markdown 深色主题 + 代码高亮深色 (背景将强制透明) -->
+    
+    <!-- Markdown & Highlight -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-dark.min.css">
     <link rel="stylesheet" href="https://cdn.timecdn.cn/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
-    <!-- 导入 highlight.js -->
     <script src="https://cdn.timecdn.cn/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
-    <!-- 聊天脚本 -->
-    <script src="https://gengen.qzz.io/js/lgge-chat.js" defer></script>
-    <!-- KaTeX 样式 & 脚本 -->
+    
+    <!-- Chat Script -->
+    <!--script src="https://gengen.qzz.io/js/lgge-chat.js" defer></script>
+    
+    <!-- KaTeX -->
     <link rel="stylesheet" href="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/katex.min.css">
-    <!-- marked 最新版本与 DOMPurify, KaTeX auto-render -->
     <script src="https://cdn.timecdn.cn/ajax/libs/marked/16.3.0/lib/marked.umd.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/dompurify/3.2.7/purify.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
     <script src="https://cdn.timecdn.cn/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
-    <!-- Font Awesome (提升图标体验) -->
+    
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdmirror.cn/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css">
+
+    <!-- 🆕 广场模式布局调整样式 -->
+    <style>
+        body.square-mode .article-right {
+            display: none !important;
+        }
+        body.square-mode .square-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        body.square-mode #update-btn {
+            display: inline-block;
+            margin-left: 16px;
+            font-size: 0.9em;
+            padding: 6px 14px;
+        }
+    </style>
 </head>
 <body>
-    <!-- 侧边栏 (与主页一致，云剪切板项 active) -->
+    <!-- 侧边栏 -->
     <div class="sidebar-wrapper">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -44,30 +65,29 @@
             </div>
             <nav class="sidebar-nav">
                 <a href="/" class="nav-item">
-                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house size-5 shrink-0" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
                     <span class="text">首页</span>
                 </a>
                 <a href="/article" class="nav-item">
-                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-newspaper-icon lucide-newspaper"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg></span>
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg></span>
                     <span class="text">文章</span>
                 </a>
                 <a href="/paste" class="nav-item active">
-                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-pen-line-icon lucide-clipboard-pen-line"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-.5"/><path d="M16 4h2a2 2 0 0 1 1.73 1"/><path d="M8 18h1"/><path d="M21.378 12.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg></span>
+                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-.5"/><path d="M16 4h2a2 2 0 0 1 1.73 1"/><path d="M8 18h1"/><path d="M21.378 12.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg></span>
                     <span class="text">云剪切板</span>
                 </a>
             </nav>
         </aside>
     </div>
 
-    <!-- 主区域 (顶栏 + 动态内容) -->
+    <!-- 主区域 -->
     <div class="main">
-        <!-- 顶栏 (面包屑) -->
         <header class="topbar">
             <nav class="breadcrumb">
                 <ol>
                     <li><a href="/">首页</a></li>
                     <li class="separator">/</li>
-                    <li><a href="/article">云剪切板</a></li>
+                    <li><a href="/article">剪贴板</a></li>
                     <li class="separator">/</li>
                     <li class="breadcrumb-item">
                         <span class="breadcrumb-current" id="breadcrumb-current">加载中...</span>
@@ -76,24 +96,37 @@
             </nav>
         </header>
 
-        <!-- 内容区域: 左侧留白 + 云剪切板主体 + 右侧固定面板 -->
         <div class="content">
             <div class="article-left"></div>
 
             <div class="article-middle">
-                <div class="article-header">
-                    <h1 class="article-title" id="dynamic-article-title">加载云剪切板...</h1>
+                <!-- 🆕 剪贴板广场容器 -->
+                <div id="article-square" class="article-square" style="display:none;">
+                    <div class="square-header">
+                        <h1 class="square-title">剪贴板广场</h1>
+                    </div>
+                    <div class="square-grid" id="square-grid">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>正在加载剪贴板广场...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 单篇剪贴板头部 -->
+                <div class="article-header" id="article-header">
+                    <h1 class="article-title" id="dynamic-article-title">加载剪贴板...</h1>
                     <div class="article-author">
                         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 38 38'%3E%3Ccircle cx='19' cy='19' r='17' fill='%23333f5a'/%3E%3C/svg%3E" class="author-avatar" id="author-avatar" alt="作者头像">
                         <a href="#" class="author-name" id="author-link" target="_blank">加载中</a>
                     </div>
                 </div>
 
-                <!-- 云剪切板主体：将使用新渲染引擎填充 -->
+                <!-- 单篇剪贴板主体 -->
                 <div class="markdown-body" id="markdown-content">
                     <div class="loading">
                         <div class="spinner"></div>
-                        <p>正在加载云剪切板内容...</p>
+                        <p>正在加载剪贴板内容...</p>
                     </div>
                 </div>
             </div>
@@ -117,7 +150,6 @@
             </div>
         </div>
 
-        <!-- 页脚 -->
         <footer class="site-footer">
             <div class="footer-links">
                 <a href="https://luogu.qzz.io/article/x2zyl5ua" target="_blank">关于</a>
@@ -131,282 +163,282 @@
                 <a href="https://github.com/ggenerals/gengen-luogu" target="_blank">GitHub 仓库</a>
             </div>
             <div class="footer-copyright">
-                <p>© 2026 全体 GenGen 队 开发者 </p>
+                <p>© 2026 全体 GenGen 队 开发者</p>
             </div>
         </footer>
     </div>
 
     <script>
-        (function() {
-            // ==================== 新渲染引擎 (完全移植自第一个文件) ====================
-            if (typeof hljs === 'undefined') {
-                console.warn('hljs 未加载，使用降级');
-                window.hljs = { highlight: (code) => ({ value: code }), highlightElement: (el) => {} };
+    (function() {
+        // ==================== Markdown 渲染引擎 ====================
+        if (typeof hljs === 'undefined') {
+            window.hljs = { highlight: (code) => ({ value: code }), highlightElement: () => {} };
+        }
+
+        const customExtensions = [
+            {
+                name: 'alignBlock', level: 'block',
+                start(src) { return src.match(/^:::\s*align\s*\{([^}]+)\}/)?.index; },
+                tokenizer(src) {
+                    const match = src.match(/^:::\s*align\s*\{([^}]+)\}([\s\S]*?)\n:::/);
+                    if (match) return { type: 'alignBlock', raw: match[0], align: match[1].trim(), content: match[2].trim() };
+                },
+                renderer(token) { return `<div class="align-${token.align}">${marked.parse(token.content)}</div>`; }
+            },
+            {
+                name: 'epigraph', level: 'block',
+                start(src) { return src.match(/^:::\s*epigraph(\[([^\]]+)\])?/)?.index; },
+                tokenizer(src) {
+                    const match = src.match(/^:::\s*epigraph(\[([^\]]+)\])?\s*([\s\S]*?)\s*:::/);
+                    if (match) return { type: 'epigraph', raw: match[0], author: match[2] || '', content: match[3].trim() };
+                },
+                renderer(token) {
+                    const authorPart = token.author ? `<p>${token.author}</p>` : '<p>unknown author</p>';
+                    return `<div class="epigraph">${marked.parse(token.content)}${authorPart}</div>`;
+                }
+            },
+            {
+                name: 'foldable', level: 'block',
+                start(src) { return src.match(/^:{3,}/)?.index; },
+                tokenizer(src) {
+                    const match = src.match(/^(:{3,})\s*(\w+)?(\[([^\]]+)\])?(\s*\{([^}]+)\})?\s*([\s\S]*?)\s*\1/);
+                    if (match && ['info','warning','success','error','bug','flask'].includes(match[2])) {
+                        return { type: 'foldable', raw: match[0], foldType: match[2]||'info', title: match[4]||'', options: match[6]||'', content: match[7].trim() };
+                    }
+                },
+                renderer(token) {
+                    const isOpen = token.options.includes('open');
+                    return `<details class="foldable ${token.foldType}" ${isOpen?'open':''}><summary>${token.title||'点击展开'}</summary>${marked.parse(token.content)}</details>`;
+                }
             }
+        ];
 
-            // ----- 1. 定义 marked 扩展（与第一个文件完全一致）-----
-            const customExtensions = [
-                {
-                    name: 'alignBlock',
-                    level: 'block',
-                    start(src) { return src.match(/^:::\s*align\s*\{([^}]+)\}/)?.index; },
-                    tokenizer(src, tokens) {
-                        const match = src.match(/^:::\s*align\s*\{([^}]+)\}([\s\S]*?)\n:::/);
-                        if (match) {
-                            return {
-                                type: 'alignBlock',
-                                raw: match[0],
-                                align: match[1].trim(),
-                                content: match[2].trim()
-                            };
-                        }
-                    },
-                    renderer(token) {
-                        return `<div class="align-${token.align}">${marked.parse(token.content)}</div>`;
-                    }
-                },
-                {
-                    name: 'epigraph',
-                    level: 'block',
-                    start(src) { return src.match(/^:::\s*epigraph(\[([^\]]+)\])?/)?.index; },
-                    tokenizer(src, tokens) {
-                        const match = src.match(/^:::\s*epigraph(\[([^\]]+)\])?\s*([\s\S]*?)\s*:::/);
-                        if (match) {
-                            return {
-                                type: 'epigraph',
-                                raw: match[0],
-                                author: match[2] || '',
-                                content: match[3].trim()
-                            };
-                        }
-                    },
-                    renderer(token) {
-                        const authorPart = token.author ? `<p>${token.author}</p>` : '<p>unknown author</p>';
-                        return `<div class="epigraph">${marked.parse(token.content)}${authorPart}</div>`;
-                    }
-                },
-                {
-                    name: 'foldable',
-                    level: 'block',
-                    start(src) { return src.match(/^:{3,}/)?.index; },
-                    tokenizer(src, tokens) {
-                        const match = src.match(/^(:{3,})\s*(\w+)?(\[([^\]]+)\])?(\s*\{([^}]+)\})?\s*([\s\S]*?)\s*\1/);
-                        if (match && ['info','warning','success','error','bug','flask'].includes(match[2])) {
-                            return {
-                                type: 'foldable',
-                                raw: match[0],
-                                foldType: match[2] || 'info',
-                                title: match[4] || '',
-                                options: match[6] || '',
-                                content: match[7].trim()
-                            };
-                        }
-                    },
-                    renderer(token) {
-                        const isOpen = token.options.includes('open');
-                        return `
-                            <details class="foldable ${token.foldType}" ${isOpen ? 'open' : ''}>
-                                <summary>${token.title || '点击展开'}</summary>
-                                ${marked.parse(token.content)}
-                            </details>
-                        `;
-                    }
-                }
-            ];
+        marked.use({ extensions: customExtensions });
 
-            marked.use({ extensions: customExtensions });
+        const renderer = new marked.Renderer();
+        renderer.code = function(codeObj, language) {
+            const code = typeof codeObj === 'string' ? codeObj : codeObj.text;
+            const lang = language || 'cpp';
+            let highlighted = code;
+            try { highlighted = hljs.highlight(code, { language: lang, ignoreIllegals: true }).value; } catch(e) {}
+            return `<div class="code-container"><pre><code class="language-${lang}">${highlighted}</code></pre></div>`;
+        };
 
-            // ----- 2. 自定义 renderer 实现代码高亮 -----
-            const renderer = new marked.Renderer();
-            renderer.code = function (code, language) {
-                code=code.text;
-                const lang = language || 'cpp';
-                let highlighted = code;
-                console.log(lang);
-                if (lang) {
-                    try {
-                        highlighted = hljs.highlight(code, { language: lang, ignoreIllegals: true }).value;
-                    } catch (e) {}
-                }
-                return `<div class="code-container"><pre><code class="language-${lang}">${highlighted}</code></pre></div>`;
-            };
+        marked.setOptions({ breaks: false, gfm: true, mangle: false, headerIds: false, renderer });
 
-            marked.setOptions({
-                breaks: false,
-                gfm: true,
-                mangle: false,
-                headerIds: false,
-                renderer: renderer
+        function renderMarkdown(text) {
+            text = text.replace(/(^|\s)\$\$\s*\n([\s\S]*?)\n\s*\$\$(?=\s|$)/gm, '$1\n$$$$$2$$$$\n');
+            text = text.replace(/([^\n])\n(\|.*\|)\n(\|.*[-:].*\|)/g, '$1\n\n$2\n$3');
+            const rawHtml = marked.parse(text);
+            const cleanHtml = DOMPurify.sanitize(rawHtml, {
+                ADD_TAGS: ['span','div','math','details','summary','i','font'],
+                ADD_ATTR: ['class','src','alt','data-math','open','referrerpolicy','crossorigin'],
+                ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
             });
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cleanHtml;
+            renderMathInElement(tempDiv, {
+                delimiters: [
+                    {left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},
+                    {left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}
+                ], strict: false, escape: false,
+                preProcess: (math) => math.replace(/\\(\r?\n)/g, '\\\\$1')
+            });
+            tempDiv.querySelectorAll('img').forEach(img => {
+                img.setAttribute('referrerpolicy','no-referrer');
+                img.setAttribute('crossorigin','anonymous');
+            });
+            return tempDiv.innerHTML;
+        }
 
-            // ----- 3. 核心渲染函数 (含预处理、清洗、公式) -----
-            function renderMarkdown(text) {
-                // 预处理：公式换行 & 表格修复
-                text = text.replace(/(^|\s)\$\$\s*\n([\s\S]*?)\n\s*\$\$(?=\s|$)/gm, '$1\n$$$$$2$$$$\n');
-                text = text.replace(/([^\n])\n(\|.*\|)\n(\|.*[-:].*\|)/g, '$1\n\n$2\n$3');
+        // ==================== 路由与状态管理 ====================
+        const path = window.location.pathname;
+        const pathMatch = path.match(/\/paste\/([a-z0-9]+)/);
+        let articleId = null;
 
-                const rawHtml = marked.parse(text);
-                const cleanHtml = DOMPurify.sanitize(rawHtml, {
-                    ADD_TAGS: ['span', 'div', 'math', 'details', 'summary', 'i', 'font'],
-                    ADD_ATTR: ['class', 'src', 'alt', 'data-math', 'open', 'referrerpolicy', 'crossorigin'],
-                    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-                    SAFE_FOR_TEMPLATES: false
+        if (pathMatch) articleId = pathMatch[1];
+        else if (window.location.hash) articleId = window.location.hash.replace(/^#/,'').trim();
+        else articleId = new URLSearchParams(window.location.search).get('id');
+
+        const isSquareMode = !articleId || articleId.length < 3;
+
+        // DOM 引用
+        const els = {
+            square: document.getElementById('article-square'),
+            grid: document.getElementById('square-grid'),
+            header: document.getElementById('article-header'),
+            content: document.getElementById('markdown-content'),
+            title: document.getElementById('dynamic-article-title'),
+            breadcrumb: document.getElementById('breadcrumb-current'),
+            saveTime: document.getElementById('save-time'),
+            originalBtn: document.getElementById('original-btn'),
+            copyBtn: document.getElementById('copy-btn'),
+            updateBtn: document.getElementById('update-btn'),
+            toc: document.getElementById('toc-list'),
+            avatar: document.getElementById('author-avatar'),
+            authorLink: document.getElementById('author-link')
+        };
+
+        // ==================== 剪贴板广场模式 ====================
+        async function loadSquare() {
+            // 🆕 启用广场布局模式
+            document.body.classList.add('square-mode');
+
+            els.square.style.display = 'block';
+            els.header.style.display = 'none';
+            els.content.style.display = 'none';
+            els.saveTime.style.display = 'none';
+            els.originalBtn.style.display = 'none';
+            els.copyBtn.style.display = 'none';
+            els.toc.parentElement.style.display = 'none';
+            els.updateBtn.innerText = '换一批';
+            document.title = '剪贴板广场 · GenGen 洛谷国际';
+            els.breadcrumb.innerText = '剪贴板广场';
+
+            els.grid.innerHTML = `<div class="loading-spinner"><div class="spinner"></div><p>正在加载剪贴板广场...</p></div>`;
+
+            try {
+                const resp = await fetch('https://luogu.qzz.io/api/rand/p', { mode: 'cors' });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const json = await resp.json();
+                if (!json.success || !Array.isArray(json.data)) throw new Error('接口返回格式错误');
+
+                els.grid.innerHTML = '';
+                json.data.forEach(item => {
+                    const card = document.createElement('a');
+                    card.className = 'square-card';
+                    card.href = `//${item.id}`;
+
+                    // 提取纯文本摘要
+                    const excerpt = (item.content || '')
+                        .replace(/:{3,}.*\n?/g, '')
+                        .replace(/[#*`>\[\]()!_~\\$\n]/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim()
+                        .substring(0, 100);
+
+                    const authorName = typeof item.author === 'string' 
+                        ? item.author 
+                        : (item.author?.name || '匿名');
+
+                    card.innerHTML = `
+                        <div class="card-title">${DOMPurify.sanitize(item.title)}</div>
+                        <div class="card-excerpt">${DOMPurify.sanitize(excerpt)}...</div>
+                        <div class="card-meta">
+                            <span class="card-author"><i class="fas fa-user-pen"></i> ${DOMPurify.sanitize(authorName)}</span>
+                        </div>
+                    `;
+                    els.grid.appendChild(card);
                 });
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = cleanHtml;
-
-                renderMathInElement(tempDiv, {
-                    delimiters: [
-                        { left: '$$', right: '$$', display: true },
-                        { left: '$', right: '$', display: false },
-                        { left: '\\(', right: '\\)', display: false },
-                        { left: '\\[', right: '\\]', display: true }
-                    ],
-                    strict: false,
-                    escape: false,
-                    preProcess: (math) => math.replace(/\\(\r?\n)/g, '\\\\$1')
-                });
-
-                tempDiv.querySelectorAll('img').forEach(img => {
-                    img.setAttribute('referrerpolicy', 'no-referrer');
-                    img.setAttribute('crossorigin', 'anonymous');
-                });
-
-                return tempDiv.innerHTML;
+            } catch(err) {
+                console.error('广场加载失败:', err);
+                els.grid.innerHTML = `<div class="loading-spinner" style="color:#f87171;">
+                    <i class="fas fa-exclamation-triangle" style="font-size:2rem;margin-bottom:8px;"></i>
+                    <p>加载失败：${err.message}</p>
+                    <p style="font-size:0.85rem;opacity:0.7;">点击「换一批」重试</p>
+                </div>`;
             }
+        }
 
-            // ========== 原有业务逻辑：获取云剪切板ID、加载数据、绑定按钮 ==========
-            let articleId = null;
-            const path = window.location.pathname;
-            const pathMatch = path.match(/\/paste\/([a-z0-9]+)/);
-            if (pathMatch) articleId = pathMatch[1];
-            if (!articleId && window.location.hash) articleId = window.location.hash.replace(/^#/, '').trim();
-            if (!articleId) {
-                const params = new URLSearchParams(window.location.search);
-                articleId = params.get('id');
-            }
-            if (!articleId || articleId.length < 3) {
-                articleId = 'yx7hyde9'; // 默认演示ID
-            }
+        // ==================== 单篇剪贴板模式 ====================
+        async function loadArticle(forceUpdate = false) {
+            // 🆕 退出广场布局模式
+            document.body.classList.remove('square-mode');
 
-            document.getElementById('breadcrumb-current').innerText = `ID: ${articleId}`;
+            els.square.style.display = 'none';
+            els.header.style.display = '';
+            els.content.style.display = '';
+            els.saveTime.style.display = '';
+            els.originalBtn.style.display = '';
+            els.copyBtn.style.display = '';
+            els.toc.parentElement.style.display = '';
+            els.updateBtn.innerText = '更新内容';
 
-            const titleEl = document.getElementById('dynamic-article-title');
-            const authorAvatar = document.getElementById('author-avatar');
-            const authorLink = document.getElementById('author-link');
-            const saveTimeEl = document.getElementById('save-time');
-            const originalBtn = document.getElementById('original-btn');
-            const copyBtn = document.getElementById('copy-btn');
-            const updateBtn = document.getElementById('update-btn');
-            const markdownBody = document.getElementById('markdown-content');
-            const tocList = document.getElementById('toc-list');
-            const breadcrumbSpan = document.getElementById('breadcrumb-current');
+            const apiUrl = `https://luogu.qzz.io/api/p/${articleId}${forceUpdate ? '?update=1' : ''}`;
 
-            async function loadArticle(forceUpdate = false) {
-                let apiUrl = `https://luogu.qzz.io/api/p/${articleId}`;
-                if (forceUpdate) {
-                    apiUrl += '?update=1';
+            try {
+                const resp = await fetch(apiUrl, { mode: 'cors' });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                if (!data.success || data.type !== 'article') throw new Error(data.message || '无效的剪贴板数据');
+
+                els.title.innerText = data.title;
+                document.title = `${data.title} - GenGen 洛谷国际`;
+                els.breadcrumb.innerText = data.title;
+
+                if (data.author && typeof data.author === 'object') {
+                    els.avatar.src = `https://cdn.luogu.com.cn/upload/usericon/${data.author.uid}.png`;
+                    els.authorLink.href = `https://luogu.com.cn/user/${data.author.uid}`;
+                    els.authorLink.innerText = data.author.name;
+                } else {
+                    els.avatar.src = 'https://luogu.qzz.io/lgge.svg';
+                    els.authorLink.href = '#';
+                    els.authorLink.innerText = data.author || '未知';
                 }
 
-                try {
-                    const resp = await fetch(apiUrl, { mode: 'cors' });
-                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                    const data = await resp.json();
+                const ts = data.updated_at > 1e12 ? data.updated_at : data.updated_at * 1000;
+                els.saveTime.querySelector('.value').innerText = new Date(ts).toLocaleString('zh-CN', {
+                    year:'numeric',month:'2-digit',day:'2-digit',
+                    hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
+                }).replace(/\//g,'-').replace(',','');
 
-                    if (!data.success || data.type !== 'paste') {
-                        throw new Error(data.message || '无效的云剪切板数据');
-                    }
-                    data.title=data.author.name+" 的云剪切板";
-                    titleEl.innerText = data.title;
-                    document.title = `${data.title} - GenGen 洛谷国际`;
-                    breadcrumbSpan.innerText = data.title;
+                els.originalBtn.disabled = false;
+                els.copyBtn.disabled = false;
 
-                    authorAvatar.src = `https://cdn.luogu.com.cn/upload/usericon/${data.author.uid}.png`;
-                    authorLink.href = `https://luogu.com.cn/user/${data.author.uid}`;
-                    authorLink.innerText = data.author.name;
+                els.originalBtn.onclick = () => {
+                    const url = data.original_url || data.url || `https://luogu.qzz.io/article/${data.id}`;
+                    window.open(url.trim(), '_blank');
+                };
 
-                    const ts = data.updated_at > 1e12 ? data.updated_at : data.updated_at * 1000;
-                    const d = new Date(ts);
-                    const formatted = d.toLocaleString('zh-CN', { 
-                        year: 'numeric', month: '2-digit', day: '2-digit',
-                        hour: '2-digit', minute: '2-digit', second: '2-digit',
-                        hour12: false 
-                    }).replace(/\//g, '-').replace(',', '');
-                    saveTimeEl.querySelector('.value').innerText = formatted;
+                els.copyBtn.onclick = async () => {
+                    try {
+                        await navigator.clipboard.writeText(data.content);
+                        const old = els.copyBtn.innerText;
+                        els.copyBtn.innerText = '已复制'; els.copyBtn.disabled = true;
+                        setTimeout(() => { els.copyBtn.innerText = old; els.copyBtn.disabled = false; }, 1500);
+                    } catch { alert('复制失败'); }
+                };
 
-                    originalBtn.disabled = false;
-                    copyBtn.disabled = false;
+                els.content.innerHTML = renderMarkdown(data.content);
 
-                    originalBtn.onclick = () => {
-                        if (data.original_url) window.open(data.original_url.trim(), '_blank');
-                    };
-
-                    copyBtn.onclick = async () => {
-                        try {
-                            await navigator.clipboard.writeText(data.content);
-                            const old = copyBtn.innerText;
-                            copyBtn.innerText = '已复制';
-                            copyBtn.disabled = true;
-                            setTimeout(() => {
-                                copyBtn.innerText = old;
-                                copyBtn.disabled = false;
-                            }, 1500);
-                        } catch {
-                            alert('复制失败，请手动复制');
-                        }
-                    };
-
-                    // 使用新渲染引擎渲染内容
-                    const finalHtml = renderMarkdown(data.content);
-                    markdownBody.innerHTML = finalHtml;
-
-                    // 生成目录
-                    const headers = markdownBody.querySelectorAll('h1, h2, h3');
-                    if (headers.length > 0) {
-                        tocList.innerHTML = '';
-                        headers.forEach((h, index) => {
-                            const level = parseInt(h.tagName[1]);
-                            let text = h.innerText;
-                            if (!h.id) {
-                                h.id = `toc-header-${index}`;
-                            }
-                            const li = document.createElement('li');
-                            const a = document.createElement('a');
-                            a.href = `#${h.id}`;
-                            a.innerText = text;
-                            a.classList.add(`toc-h${level}`);
-                            li.appendChild(a);
-                            tocList.appendChild(li);
-                        });
-
-                        document.querySelectorAll('.toc-list a').forEach(a => {
-                            a.addEventListener('click', e => {
-                                e.preventDefault();
-                                const target = document.querySelector(a.getAttribute('href'));
-                                if (target) {
-                                    target.scrollIntoView({ behavior: 'smooth' });
-                                }
-                            });
-                        });
-                    } else {
-                        tocList.innerHTML = '<li style="color: var(--text-muted);">无标题</li>';
-                    }
-
-                } catch (err) {
-                    console.error('加载失败:', err);
-                    titleEl.innerText = '加载失败';
-                    markdownBody.innerHTML = `<div class="error-message">错误：${err.message}</div>`;
-                    breadcrumbSpan.innerText = '错误';
+                // 目录生成
+                const headers = els.content.querySelectorAll('h1, h2, h3');
+                els.toc.innerHTML = '';
+                if (headers.length > 0) {
+                    headers.forEach((h, i) => {
+                        if (!h.id) h.id = `toc-header-${i}`;
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = `#${h.id}`;
+                        a.innerText = h.innerText;
+                        a.classList.add(`toc-h${h.tagName[1]}`);
+                        a.onclick = (e) => { e.preventDefault(); document.getElementById(h.id)?.scrollIntoView({behavior:'smooth'}); };
+                        li.appendChild(a);
+                        els.toc.appendChild(li);
+                    });
+                } else {
+                    els.toc.innerHTML = '<li style="color:var(--text-muted)">无标题</li>';
                 }
+            } catch(err) {
+                console.error('加载失败:', err);
+                els.title.innerText = '加载失败';
+                els.content.innerHTML = `<div class="error-message" style="color:#f87171;padding:40px;text-align:center;">错误：${err.message}</div>`;
+                els.breadcrumb.innerText = '错误';
             }
+        }
 
+        // ==================== 入口分发 ====================
+        if (isSquareMode) {
+            loadSquare();
+            els.updateBtn.onclick = () => loadSquare();
+        } else {
             loadArticle(false);
-
-            updateBtn.onclick = () => {
-                markdownBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>更新中...</p></div>';
+            els.updateBtn.onclick = () => {
+                els.content.innerHTML = '<div class="loading"><div class="spinner"></div><p>更新中...</p></div>';
                 loadArticle(true);
             };
-        })();
+        }
+    })();
     </script>
 </body>
 </html>
