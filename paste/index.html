@@ -363,7 +363,7 @@
                 if (!data.success || data.type !== 'paste') throw new Error(data.message || '无效的剪贴板数据');
 
                 els.title.innerText = data.title;
-                document.title = `${data.title} - GenGen 洛谷国际`;
+                document.title = data.author.name+` 的云剪切板 - GenGen 洛谷国际`;
                 els.breadcrumb.innerText = data.title;
 
                 if (data.author && typeof data.author === 'object') {
