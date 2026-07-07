@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <!-- Clarity tracking code for https://luogu.qzz.io/ -->
+    <!-- Clarity tracking code for / -->
     <script>
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -14,9 +14,9 @@
     <title>剪贴板 · GenGen 洛谷国际</title>
     
     <!-- 基础样式 -->
-    <link rel="stylesheet" href="https://luogu.qzz.io/mark.css">
-    <link rel="icon" href="https://luogu.qzz.io/lgge.svg">
-    <link rel="stylesheet" href="https://luogu.qzz.io/style.css">
+    <link rel="stylesheet" href="/mark.css">
+    <link rel="icon" href="/lgge.svg">
+    <link rel="stylesheet" href="/style.css">
     
     <!-- Markdown & Highlight -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-dark.min.css">
@@ -60,7 +60,7 @@
     <div class="sidebar-wrapper">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="https://luogu.qzz.io/lgge.svg" class="sidebar-logo" alt="logo">
+                <img src="/lgge.svg" class="sidebar-logo" alt="logo">
                 <span class="sidebar-title">GenGen 洛谷国际</span>
             </div>
             <nav class="sidebar-nav">
@@ -152,11 +152,11 @@
 
         <footer class="site-footer">
             <div class="footer-links">
-                <a href="https://luogu.qzz.io/article/x2zyl5ua" target="_blank">关于</a>
+                <a href="/article/x2zyl5ua" target="_blank">关于</a>
                 <span class="footer-separator">·</span>
-                <a href="https://luogu.qzz.io/article/j4u9p5ux" target="_blank">API 协议</a>
+                <a href="/article/j4u9p5ux" target="_blank">API 协议</a>
                 <span class="footer-separator">·</span>
-                <a href="https://luogu.qzz.io/article/pqahkkyk" target="_blank">用户及隐私协议</a>
+                <a href="/article/pqahkkyk" target="_blank">用户及隐私协议</a>
                 <span class="footer-separator">·</span>
                 <a href="https://www.luogu.com.cn/chat?uid=697932" target="_blank">联系我们</a>
                 <span class="footer-separator">·</span>
@@ -298,7 +298,7 @@
             els.grid.innerHTML = `<div class="loading-spinner"><div class="spinner"></div><p>正在加载剪贴板广场...</p></div>`;
 
             try {
-                const resp = await fetch('https://luogu.qzz.io/api/rand/p', { mode: 'cors' });
+                const resp = await fetch('/api/rand/p', { mode: 'cors' });
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const json = await resp.json();
                 if (!json.success || !Array.isArray(json.data)) throw new Error('接口返回格式错误');
@@ -354,7 +354,7 @@
             els.toc.parentElement.style.display = '';
             els.updateBtn.innerText = '更新内容';
 
-            const apiUrl = `https://luogu.qzz.io/api/p/${articleId}${forceUpdate ? '?update=1' : ''}`;
+            const apiUrl = `/api/p/${articleId}${forceUpdate ? '?update=1' : ''}`;
 
             try {
                 const resp = await fetch(apiUrl, { mode: 'cors' });
@@ -371,7 +371,7 @@
                     els.authorLink.href = `https://luogu.com.cn/user/${data.author.uid}`;
                     els.authorLink.innerText = data.author.name;
                 } else {
-                    els.avatar.src = 'https://luogu.qzz.io/lgge.svg';
+                    els.avatar.src = '/lgge.svg';
                     els.authorLink.href = '#';
                     els.authorLink.innerText = data.author || '未知';
                 }
@@ -386,7 +386,7 @@
                 els.copyBtn.disabled = false;
 
                 els.originalBtn.onclick = () => {
-                    const url = data.original_url || data.url || `https://luogu.qzz.io/article/${data.id}`;
+                    const url = data.original_url || data.url || `/article/${data.id}`;
                     window.open(url.trim(), '_blank');
                 };
 
